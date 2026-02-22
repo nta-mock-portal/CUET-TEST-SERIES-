@@ -2,101 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NTA CUET Mock Portal</title>
+    <title>CUET UG Smart Portal</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         :root { --blue: #004a99; --green: #27ae60; --red: #e74c3c; }
         body { font-family: Arial; margin: 0; background: #f4f7f6; }
         .hidden { display: none !important; }
-        .container { max-width: 800px; margin: 40px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 30px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .paper-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; background: var(--blue); color: white; }
+        
+        /* Exam UI */
         .nta-header { background: white; border-bottom: 2px solid var(--blue); padding: 10px 20px; display: flex; justify-content: space-between; }
-        .palette-btn { width: 35px; height: 35px; margin: 3px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-        .palette-btn.ans { background: var(--green); color: white; border-radius: 0 0 15px 15px; }
+        .timer-strip { background: var(--blue); color: white; padding: 5px 20px; text-align: right; }
+        .wrapper { display: flex; height: 85vh; }
+        .q-window { flex: 3; background: white; padding: 25px; overflow-y: auto; }
+        .side-bar { flex: 1; background: #eee; padding: 20px; border-left: 1px solid #ccc; }
+        .p-btn { width: 35px; height: 35px; margin: 3px; border: 1px solid #999; background: #fff; cursor: pointer; }
+        .p-btn.ans { background: var(--green); color: white; border-radius: 0 0 15px 15px; }
         .option-card { display: block; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="home-screen" class="container">
-    <h2 style="color: var(--blue); text-align: center;">CUET UG LIVE PORTAL</h2>
-    <div id="paper-list">Loading papers from cloud...</div>
-    <button onclick="adminLogin()" style="margin-top:50px; opacity:0.1; border:none; background:none;">Admin</button>
+    <div style="text-align:center;"><img src="https://nta.ac.in/img/nta_logo.png" height="50"><h2>CUET UG LIVE PORTAL</h2></div>
+    <div id="paper-list">Loading papers from Cloud...</div>
+    <button onclick="showAdmin()" style="margin-top:50px; opacity:0.2; border:none; background:none; cursor:pointer;">Admin: Upload New Paper</button>
 </div>
 
 <div id="admin-panel" class="container hidden">
-    <h3>Admin: Upload New Test</h3>
-    <input type="text" id="p-title" placeholder="Test Title" style="width:100%; padding:10px; margin-bottom:10px;">
-    <textarea id="p-json" placeholder='JSON Format: [{"q":"Question?","options":["A","B","C","D"],"a":0}]' style="width:100%; height:150px;"></textarea>
-    <button onclick="pushToCloud()" style="background:var(--blue); color:white; padding:10px; width:100%; border:none;">Publish Globally</button>
+    <h3>Admin: Add New Test Paper</h3>
+    <input type="text" id="p-title" placeholder="Paper Title (e.g. English Mock 2)" style="width:97%; padding:10px; margin-bottom:10px;">
+    <textarea id="p-json" placeholder='Paste JSON here...' style="width:97%; height:200px; font-family:monospace;"></textarea>
+    <button onclick="pushToCloud()" class="btn" style="width:100%">Publish Globally</button>
+    <button onclick="location.reload()" style="margin-top:10px; width:100%">Back to Home</button>
 </div>
 
 <div id="exam-screen" class="hidden">
-    <div class="nta-header"><b>CUET MOCK</b><span id="timer">45:00</span></div>
-    <div style="display:flex; height: 80vh;">
-        <div style="flex:3; background:white; padding:30px;">
-            <h4 id="q-num">Question 1</h4>
-            <p id="q-text" style="font-size: 1.2rem;"></p>
+    <div class="nta-header"><b id="active-title">Exam</b><span id="timer">60:00</span></div>
+    <div class="wrapper">
+        <div class="q-window">
+            <h4 id="q-label">Question</h4>
+            <p id="q-text" style="font-size: 1.1rem;"></p>
             <div id="options-box"></div>
-            <button onclick="saveNext()" style="background:var(--blue); color:white; padding:10px 20px; border:none; margin-top:20px;">Save & Next</button>
+            <button onclick="saveNext()" class="btn" style="margin-top:20px;">Save & Next</button>
         </div>
-        <div style="flex:1; background:#eee; padding:20px;">
-            <b>Palette</b>
+        <div class="side-bar">
+            <b>Question Palette</b>
             <div id="palette-grid" style="margin:15px 0;"></div>
-            <button onclick="submitTest()" style="background:var(--red); color:white; width:100%; border:none; padding:10px;">SUBMIT</button>
+            <button onclick="submitTest()" class="btn" style="background:var(--red); width:100%">SUBMIT TEST</button>
         </div>
     </div>
 </div>
 
 <div id="analysis-screen" class="container hidden">
-    <h2>Detailed Performance Analysis</h2>
-    <div id="score-summary" style="font-size:20px; margin-bottom:20px;"></div>
+    <h2>Analysis Report</h2>
+    <div id="score-summary" style="font-size:22px; padding:15px; background:#eefbff; margin-bottom:20px;"></div>
     <table border="1" style="width:100%; border-collapse: collapse;" id="analysis-table">
         <tr style="background:#eee;"><th>Q.No</th><th>Status</th><th>Correct Answer</th><th>Marks</th></tr>
     </table>
-    <button onclick="location.reload()" style="width:100%; margin-top:20px; padding:10px;">Restart Practice</button>
+    <button onclick="location.reload()" class="btn" style="margin-top:20px; width:100%">Give Another Test</button>
 </div>
 
 <script>
-    // --- STEP 2 Config goes here ---
     const firebaseConfig = {
-        apiKey: "YOUR_KEY",
-        databaseURL: "YOUR_URL",
-        projectId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyA_vvq8m9k7equDneBmytg-e9Z6mZasSC4",
+        databaseURL: "https://cuet-portal-5dd8a-default-rtdb.firebaseio.com",
+        projectId: "cuet-portal-5dd8a",
+        appId: "1:240480813227:web:edaaf3a486d4f0bde8f7ee"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let allTests = {}, activeTest = null, userAns = [], currentIdx = 0;
+    let allTests = {}, activeTest = null, userAns = [], currentIdx = 0, timer;
 
-    // Load papers from Firebase
+    // Load papers from Cloud
     db.ref('papers').on('value', (s) => {
         allTests = s.val() || {};
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allTests) {
-            list.innerHTML += `<div style="border:1px solid #ddd; padding:15px; margin:10px 0; display:flex; justify-content:space-between;">
-                <b>${allTests[id].title}</b>
-                <button onclick="startTest('${id}')" style="background:var(--blue); color:white; border:none; padding:5px 15px;">Attempt</button>
-            </div>`;
+            list.innerHTML += `<div class="paper-card"><b>${allTests[id].title}</b><button class="btn" onclick="startTest('${id}')">Start Test</button></div>`;
         }
     });
 
-    function adminLogin() {
-        if(prompt("Admin Password?") === "cuet123") {
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('admin-panel').classList.remove('hidden');
-        }
-    }
+    function showAdmin() { document.getElementById('home-screen').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); }
 
     function pushToCloud() {
         const title = document.getElementById('p-title').value;
         const questions = JSON.parse(document.getElementById('p-json').value);
-        db.ref('papers/' + Date.now()).set({ title, questions }).then(() => {
-            alert("Test Published!");
-            location.reload();
-        });
+        db.ref('papers/' + Date.now()).set({ title, questions }).then(() => { alert("Paper Uploaded to Cloud!"); location.reload(); });
     }
 
     function startTest(id) {
@@ -104,12 +101,14 @@
         userAns = new Array(activeTest.questions.length).fill(null);
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-screen').classList.remove('hidden');
+        document.getElementById('active-title').innerText = activeTest.title;
         render();
+        startClock(3600); // 1 hour as per instructions [cite: 5]
     }
 
     function render() {
         const q = activeTest.questions[currentIdx];
-        document.getElementById('q-num').innerText = "Question " + (currentIdx + 1);
+        document.getElementById('q-label').innerText = "Question " + (currentIdx + 1);
         document.getElementById('q-text').innerText = q.q;
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -119,10 +118,8 @@
         updatePalette();
     }
 
-    function saveNext() {
-        if(currentIdx < activeTest.questions.length - 1) { currentIdx++; render(); }
-    }
-
+    function saveNext() { if(currentIdx < activeTest.questions.length - 1) { currentIdx++; render(); } }
+    
     function updatePalette() {
         const grid = document.getElementById('palette-grid');
         grid.innerHTML = "";
@@ -132,7 +129,17 @@
         });
     }
 
+    function startClock(sec) {
+        timer = setInterval(() => {
+            sec--;
+            let m = Math.floor(sec/60), s = sec%60;
+            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            if(sec <= 0) submitTest();
+        }, 1000);
+    }
+
     function submitTest() {
+        clearInterval(timer);
         document.getElementById('exam-screen').classList.add('hidden');
         document.getElementById('analysis-screen').classList.remove('hidden');
         let score = 0, correct = 0, wrong = 0;
@@ -140,9 +147,8 @@
 
         activeTest.questions.forEach((q, i) => {
             let m = 0, status = "Skipped", color = "gray";
-            if(userAns[i] === q.a) { score += 5; correct++; m = 5; status = "Correct"; color = "green"; }
-            else if(userAns[i] !== null) { score -= 1; wrong++; m = -1; status = "Wrong"; color = "red"; }
-            
+            if(userAns[i] === q.a) { score += 5; correct++; m = 5; status = "Correct"; color = "green"; } // +5 as per [cite: 7]
+            else if(userAns[i] !== null) { score -= 1; wrong++; m = -1; status = "Wrong"; color = "red"; } // -1 as per [cite: 7]
             table.innerHTML += `<tr><td>${i+1}</td><td style="color:${color}">${status}</td><td>${q.options[q.a]}</td><td>${m}</td></tr>`;
         });
         document.getElementById('score-summary').innerHTML = `Final Score: <b>${score}</b> | Correct: ${correct} | Incorrect: ${wrong}`;
