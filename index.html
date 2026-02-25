@@ -30,13 +30,12 @@
         .p-btn.ans { background: var(--green); color: white; border-radius: 0 0 15px 15px; border: none; }
         .p-btn.active { border: 2px solid #000; font-weight: bold; }
 
-        /* Secret Discussion Section Styles */
+        /* Discussion Section Styles */
         #discussion-box { margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px; }
-        .msg-list { height: 150px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 10px; padding: 10px; font-size: 13px; background: #fafafa; }
-        .msg-item { margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #eee; }
-        .msg-input { width: 75%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .msg-list { height: 180px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 10px; padding: 10px; font-size: 13px; background: #fafafa; }
+        .msg-item { margin-bottom: 8px; padding: 6px; border-bottom: 1px solid #f0f0f0; color: #333; word-wrap: break-word; }
+        .msg-input { width: 70%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
         
-        .admin-box textarea { width: 100%; height: 200px; font-family: monospace; margin: 10px 0; }
         .res-table { width: 100%; border-collapse: collapse; margin-top: 25px; }
         .res-table th, .res-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
     </style>
@@ -55,9 +54,9 @@
 
 <div id="admin-panel" class="container hidden">
     <h3>Admin: Upload New Paper</h3>
-    <input type="text" id="adm-title" placeholder="Paper Name" style="width:98%; padding:10px;">
-    <textarea id="adm-json" placeholder='Format: [{"q":"Question text","img":"URL_IF_ANY","options":["A","B","C","D"],"a":0}]'></textarea>
-    <button class="btn-blue" style="width:100%" onclick="savePaper()">Publish to Live Website</button>
+    <input type="text" id="adm-title" placeholder="Paper Name (e.g. General Test Paper 8)" style="width:98%; padding:10px;">
+    <textarea id="adm-json" style="width:100%; height:200px; margin-top:10px;" placeholder='[{"q":"Question?","options":["A","B"],"a":0}]'></textarea>
+    <button class="btn-blue" style="width:100%; margin-top:10px;" onclick="savePaper()">Publish Paper</button>
     <button onclick="location.reload()" style="margin-top:10px; width:100%">Cancel</button>
 </div>
 
@@ -82,10 +81,10 @@
 
             <div id="discussion-area" class="hidden">
                 <div id="discussion-box">
-                    <p style="font-size: 12px; color: #888;">Note: Use this area to record your thoughts or queries regarding the 2025 paper pattern.</p>
+                    <p style="font-size: 12px; color: #888; border-bottom: 1px solid #eee; padding-bottom: 5px;">Analysis & Discussion Notes</p>
                     <div class="msg-list" id="msg-list"></div>
-                    <input type="text" id="msg-input" class="msg-input" placeholder="Enter notes...">
-                    <button onclick="sendMessage()" class="btn-blue" style="padding: 8px 15px;">Add</button>
+                    <input type="text" id="msg-input" class="msg-input" placeholder="Type notes here...">
+                    <button onclick="sendMessage()" class="btn-blue" style="padding: 10px 15px;">Add</button>
                 </div>
             </div>
         </div>
@@ -99,12 +98,10 @@
 </div>
 
 <div id="result-screen" class="container hidden">
-    <h2 style="color:var(--blue);">Detailed Performance Analysis</h2>
+    <h2 style="color:var(--blue);">Performance Analysis</h2>
     <div id="res-summary" style="font-size:22px; padding:20px; background:#eefbff; border-left:5px solid var(--blue); margin-bottom:20px;"></div>
     <table class="res-table">
-        <thead>
-            <tr style="background:#eee;"><th>Q.No</th><th>Status</th><th>Your Ans</th><th>Correct Ans</th><th>Marks</th></tr>
-        </thead>
+        <thead><tr style="background:#eee;"><th>Q.No</th><th>Status</th><th>Your Ans</th><th>Correct Ans</th><th>Marks</th></tr></thead>
         <tbody id="res-body"></tbody>
     </table>
     <br><button onclick="location.reload()" class="btn-blue">Back to Home</button>
@@ -120,7 +117,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
     let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
 
     database.ref('papers').on('value', (snap) => {
@@ -129,25 +125,16 @@
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
-            list.innerHTML += `<div class="paper-card">
-                <b>${allPapers[id].title}</b>
-                <button class="btn-blue" onclick="startTest('${id}')">Start Test</button>
-            </div>`;
+            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn-blue" onclick="startTest('${id}')">Start Test</button></div>`;
         }
     });
 
-    function showAdmin() { 
-        document.getElementById('home-screen').classList.add('hidden'); 
-        document.getElementById('admin-panel').classList.remove('hidden'); 
-    }
+    function showAdmin() { document.getElementById('home-screen').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); }
 
     function savePaper() {
         const title = document.getElementById('adm-title').value;
         const questions = JSON.parse(document.getElementById('adm-json').value);
-        database.ref('papers/' + Date.now()).set({ title, questions }).then(() => {
-            alert("Test Published!");
-            location.reload();
-        });
+        database.ref('papers/' + Date.now()).set({ title, questions }).then(() => { alert("Test Published!"); location.reload(); });
     }
 
     function startTest(id) {
@@ -157,8 +144,9 @@
         document.getElementById('exam-ui').classList.remove('hidden');
         document.getElementById('exam-title-head').innerText = activeTest.title;
         
-        // Trick: Check if it's General Test paper 8
-        if(activeTest.title.includes("paper 8")) {
+        // Target Logic: Match "General Test Paper 8"
+        const currentTitle = activeTest.title.toLowerCase();
+        if(currentTitle.includes("paper 8") || currentTitle.includes("paper8")) {
             document.getElementById('discussion-area').classList.remove('hidden');
             loadMessages();
         } else {
@@ -180,13 +168,11 @@
         document.getElementById('q-label').innerText = "Question No. " + (currentQ + 1);
         document.getElementById('q-text').innerText = q.q;
         const imgBox = document.getElementById('q-image-container');
-        imgBox.innerHTML = q.img ? `<img src="${q.img}" style="max-width:300px; margin:15px 0; border:1px solid #ddd;">` : "";
+        imgBox.innerHTML = q.img ? `<img src="${q.img}" style="max-width:300px; margin:15px 0;">` : "";
         const optBox = document.getElementById('options-container');
         optBox.innerHTML = "";
         q.options.forEach((opt, i) => {
-            optBox.innerHTML += `<label class="option-item">
-                <input type="radio" name="choice" onclick="userChoices[${currentQ}]=${i}" ${userChoices[currentQ]===i?'checked':''}> ${opt}
-            </label>`;
+            optBox.innerHTML += `<label class="option-item"><input type="radio" name="choice" onclick="userChoices[${currentQ}]=${i}" ${userChoices[currentQ]===i?'checked':''}> ${opt}</label>`;
         });
         updatePalette();
     }
@@ -203,14 +189,10 @@
         });
     }
 
-    // Secret Messaging Functions
     function sendMessage() {
         const text = document.getElementById('msg-input').value;
-        if(!text) return;
-        database.ref('secret_messages').push({
-            text: text,
-            timestamp: Date.now()
-        });
+        if(!text.trim()) return;
+        database.ref('secret_messages').push({ text: text, timestamp: Date.now() });
         document.getElementById('msg-input').value = "";
     }
 
@@ -219,8 +201,10 @@
             const list = document.getElementById('msg-list');
             list.innerHTML = "";
             const data = snap.val();
-            for(let id in data) {
-                list.innerHTML += `<div class="msg-item">${data[id].text}</div>`;
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    list.innerHTML += `<div class="msg-item">${data[key].text}</div>`;
+                });
             }
             list.scrollTop = list.scrollHeight;
         });
@@ -237,9 +221,9 @@
             let choice = userChoices[i], status = "Skipped", color = "#666", marks = 0;
             if(choice === q.a) { score += 5; correct++; marks = 5; status = "Correct"; color = "green"; }
             else if(choice !== null) { score -= 1; wrong++; marks = -1; status = "Wrong"; color = "red"; }
-            body.innerHTML += `<tr><td>${i+1}</td><td style="color:${color}; font-weight:bold;">${status}</td><td>${choice !== null ? q.options[choice] : '---'}</td><td>${q.options[q.a]}</td><td>${marks}</td></tr>`;
+            body.innerHTML += `<tr><td>${i+1}</td><td style="color:${color}; font-weight:bold;">${status}</td><td>${choice!==null?q.options[choice]:'--'}</td><td>${q.options[q.a]}</td><td>${marks}</td></tr>`;
         });
-        document.getElementById('res-summary').innerHTML = `Score: <b>${score}</b> | Correct: ${correct} | Incorrect: ${wrong}`;
+        document.getElementById('res-summary').innerHTML = `Final Score: <b>${score}</b> | Correct: ${correct} | Incorrect: ${wrong}`;
     }
 </script>
 </body>
