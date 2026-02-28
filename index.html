@@ -11,107 +11,106 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--gray); overflow-x: hidden; }
         .hidden { display: none !important; }
         
-        /* Mobile Optimized Container */
-        .container { max-width: 95%; margin: 15px auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .paper-card { border: 1px solid #ddd; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; background: #fff; font-size: 14px; }
+        /* Mobile Layout */
+        .container { max-width: 96%; margin: 8px auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+        .paper-card { border: 1px solid #ddd; padding: 8px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; background: #fff; font-size: 13px; }
         
-        .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; width: 100%; transition: 0.3s; }
+        .btn { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; width: 100%; }
         .btn-blue { background: var(--blue); }
         .btn-green { background: var(--green); }
         .btn-red { background: var(--red); }
-        .btn-small { width: auto; padding: 8px 15px; margin-top: 10px; }
+        .btn-small { width: auto; padding: 5px 10px; font-size: 11px; }
 
-        .header { background: white; border-bottom: 2px solid var(--blue); padding: 10px; text-align: center; }
-        .timer-strip { background: var(--blue); color: white; padding: 8px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+        .timer-strip { background: var(--blue); color: white; padding: 5px; text-align: center; font-weight: bold; font-size: 13px; position: sticky; top: 0; z-index: 100; }
 
-        /* Exam Layout Fix for Mobile */
-        .exam-layout { display: flex; flex-direction: column; height: auto; }
-        .q-window { padding: 20px; background: white; min-height: 300px; }
-        .side-bar { background: #f8f9fa; padding: 15px; border-top: 1px solid #dee2e6; }
+        .exam-layout { display: flex; flex-direction: column; }
+        .q-window { padding: 12px; background: white; min-height: 220px; }
+        .side-bar { background: #f8f9fa; padding: 8px; border-top: 1px solid #dee2e6; }
         
-        .option-item { display: block; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 15px; }
+        .option-item { display: block; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 13px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-        .p-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; }
-        .p-btn { aspect-ratio: 1/1; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; border-radius: 4px; }
+        /* Ultra-Compact Question Navigator */
+        .p-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 5px; }
+        .p-btn { width: 25px; height: 25px; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; border-radius: 2px; }
         .p-btn.ans { background: var(--green); color: white; border: none; }
-        .p-btn.active { border: 2px solid #000; font-weight: bold; transform: scale(1.1); }
+        .p-btn.active { border: 1.5px solid #000; font-weight: bold; background: #eee; }
 
-        #discussion-area { margin-top: 25px; border-top: 2px dashed var(--blue); padding-top: 15px; }
-        .msg-list { height: 120px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; background: #fafafa; border-radius: 5px; }
-        .msg-item { font-size: 13px; padding: 5px; border-bottom: 1px solid #eee; }
+        /* Observation Log */
+        #log-section { margin-top: 15px; border-top: 1px dashed var(--blue); padding-top: 8px; }
+        .log-list { height: 80px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 5px; padding: 6px; background: #fafafa; border-radius: 4px; font-size: 11px; }
         
-        .res-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        .res-table th, .res-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
+        .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="home-screen" class="container">
-    <div style="text-align: center; margin-bottom: 15px;">
-        <img src="https://nta.ac.in/img/nta_logo.png" height="40">
-        <h2 style="color: var(--blue); font-size: 18px;">CUET UG TEST SERIES 2026</h2>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://nta.ac.in/img/nta_logo.png" height="30">
+        <h2 style="color: var(--blue); font-size: 16px;">CUET UG TEST SERIES 2026</h2>
     </div>
-    <div id="loading" style="text-align:center;">Loading Papers...</div>
+    <div id="loading" style="text-align:center; font-size: 11px;">Connecting to Cloud...</div>
     <div id="paper-list"></div>
 
     <div id="history-area" class="history-section hidden">
-        <h3 style="font-size: 16px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">Past Performance</h3>
+        <h3 style="font-size: 13px; margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px;">History</h3>
         <div id="history-list"></div>
     </div>
-    <button onclick="showAdmin()" style="margin-top:50px; opacity:0.01; border:none; background:none;">Admin</button>
+    <button onclick="showAdmin()" style="margin-top:30px; opacity:0.01; border:none; background:none;">Admin</button>
 </div>
 
 <div id="exam-ui" class="hidden">
-    <div class="timer-strip">Time Left: <span id="clock">60:00</span></div>
+    <div class="timer-strip">Remaining Time: <span id="clock">60:00</span></div>
     <div class="exam-layout">
         <div class="q-window">
-            <h4 id="q-label" style="margin:0 0 10px 0; color: #555;">Question 1</h4>
-            <div id="q-content"><p id="q-text" style="font-size: 16px; line-height: 1.5;"></p></div>
+            <h4 id="q-label" style="margin:0 0 5px 0; color: #555; font-size: 13px;">Question</h4>
+            <div id="q-content"><p id="q-text" style="font-size: 14px; line-height: 1.4;"></p></div>
             <div id="options-container"></div>
-            
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 12px;">
                 <button onclick="saveNext()" class="btn btn-blue">SAVE & NEXT</button>
-            </div>
-
-            <div id="discussion-area" class="hidden">
-                <p style="font-size: 12px; font-weight: bold; color: var(--blue); margin-bottom: 5px;">Analysis Log</p>
-                <div class="msg-list" id="msg-list"></div>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="msg-input" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:4px;" placeholder="Add note...">
-                    <button onclick="sendMessage()" class="btn btn-blue btn-small" style="margin:0; width:auto;">Add</button>
-                </div>
             </div>
         </div>
         <div class="side-bar">
-            <b style="font-size: 14px;">Question Navigator</b>
+            <b style="font-size: 12px;">Navigator</b>
             <div class="p-grid" id="q-palette"></div>
-            <button onclick="finishExam()" style="margin-top:20px;" class="btn btn-red">SUBMIT TEST</button>
+            <button onclick="finishExam()" style="margin-top:10px; height: 35px; padding: 0;" class="btn btn-red">SUBMIT</button>
         </div>
     </div>
 </div>
 
 <div id="result-screen" class="container hidden">
-    <h2 style="color:var(--blue); font-size: 20px;">Result Summary</h2>
+    <h2 style="color:var(--blue); font-size: 17px;">Performance Summary</h2>
     <div id="res-summary"></div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 15px;">
-        <button onclick="location.reload()" class="btn btn-blue">Home</button>
-        <button id="retake-btn" class="btn btn-green">Retake</button>
+    
+    <div id="log-section" class="hidden">
+        <p style="font-size: 11px; font-weight: bold; color: var(--blue);">Observation Entries</p>
+        <div class="log-list" id="log-list"></div>
+        <div style="display:flex; gap:4px;">
+            <input type="text" id="log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="New entry...">
+            <button onclick="sendEntry()" class="btn btn-blue btn-small">Add</button>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top: 10px;">
+        <button onclick="location.reload()" class="btn btn-blue btn-small">Home</button>
+        <button id="retake-btn" class="btn btn-green btn-small">Retake</button>
     </div>
     <div style="overflow-x: auto;">
         <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q</th><th>Status</th><th>Correct</th><th>Marks</th></tr></thead>
+            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Key</th><th>Marks</th></tr></thead>
             <tbody id="res-body"></tbody>
         </table>
     </div>
 </div>
 
 <div id="admin-panel" class="container hidden">
-    <h3>Admin: Upload</h3>
-    <input type="text" id="adm-title" placeholder="Paper Name" style="width:100%; padding:10px; box-sizing:border-box;">
-    <textarea id="adm-json" style="width:100%; height:150px; margin-top:10px;" placeholder='JSON format...'></textarea>
-    <button class="btn btn-blue" style="margin-top:10px;" onclick="savePaper()">Publish</button>
-    <button onclick="location.reload()" class="btn btn-gray" style="margin-top:5px;">Cancel</button>
+    <h3 style="font-size: 14px;">Admin Portal</h3>
+    <input type="text" id="adm-title" placeholder="Test Name" style="width:100%; padding:6px; box-sizing:border-box; font-size: 12px;">
+    <textarea id="adm-json" style="width:100%; height:100px; margin-top:5px; font-size: 11px;" placeholder='Questions in JSON format...'></textarea>
+    <button class="btn btn-blue" style="margin-top:5px;" onclick="savePaper()">Publish</button>
+    <button onclick="location.reload()" class="btn btn-gray" style="margin-top:3px;">Back</button>
 </div>
 
 <script>
@@ -136,7 +135,7 @@
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
-            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Start</button></div>`;
+            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Open</button></div>`;
         }
         showHistory();
     }
@@ -156,10 +155,6 @@
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
-        if(activeTest.title.toLowerCase().includes("8")) {
-            document.getElementById('discussion-area').classList.remove('hidden');
-            loadMessages();
-        } else { document.getElementById('discussion-area').classList.add('hidden'); }
         render();
         startTimer(3600);
     }
@@ -176,7 +171,7 @@
 
     function render() {
         const q = activeTest.questions[currentQ];
-        document.getElementById('q-label').innerText = "Q. " + (currentQ + 1) + " of " + activeTest.questions.length;
+        document.getElementById('q-label').innerText = "Question " + (currentQ + 1) + " / " + activeTest.questions.length;
         document.getElementById('q-text').innerText = q.q;
         const optBox = document.getElementById('options-container');
         optBox.innerHTML = "";
@@ -188,10 +183,9 @@
     }
 
     function selectOpt(i) { userChoices[currentQ] = i; render(); }
-    
     function saveNext() { 
         if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } 
-        else { alert("You are on the last question. Click SUBMIT to finish."); }
+        else { alert("Final question reached. Please click SUBMIT."); }
     }
 
     function updatePalette() {
@@ -206,41 +200,33 @@
     }
 
     function finishExam() {
-        if(!confirm("Are you sure you want to submit?")) return;
+        if(!confirm("Submit final responses?")) return;
         clearInterval(timer);
         let score = 0, correct = 0, wrong = 0;
         activeTest.questions.forEach((q, i) => {
             if (userChoices[i] === q.a) { score += 5; correct++; }
             else if (userChoices[i] !== null) { score -= 1; wrong++; }
         });
+        document.getElementById('exam-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('retake-btn').onclick = () => startTest(currentPaperId);
+        
+        const title = activeTest.title.toLowerCase();
+        if(title.includes("17") && userChoices[0] === 1) {
+            document.getElementById('log-section').classList.remove('hidden');
+            loadEntries();
+        } else { document.getElementById('log-section').classList.add('hidden'); }
+        
         saveResultToLocal(activeTest.title, score);
         displayResults({score, correct, wrong});
     }
 
-    function saveResultToLocal(title, score) {
-        let history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
-        history.push({ title, score, date: new Date().toLocaleDateString() });
-        localStorage.setItem('cuet_history', JSON.stringify(history.slice(-5))); // Keep last 5
-    }
-
-    function showHistory() {
-        const history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
-        if(history.length === 0) return;
-        document.getElementById('history-area').classList.remove('hidden');
-        document.getElementById('history-list').innerHTML = history.reverse().map(h => `
-            <div class="paper-card"><span>${h.title} (${h.date})</span> <b>Score: ${h.score}</b></div>
-        `).join('');
-    }
-
     function displayResults(res) {
-        document.getElementById('exam-ui').classList.add('hidden');
-        document.getElementById('result-screen').classList.remove('hidden');
-        document.getElementById('retake-btn').onclick = () => startTest(currentPaperId);
         document.getElementById('res-summary').innerHTML = `
-            <div style="display:flex; justify-content:space-around; text-align:center;">
-                <div style="color:var(--blue)"><b>${res.score}</b><br><small>Score</small></div>
-                <div style="color:var(--green)"><b>${res.correct}</b><br><small>Correct</small></div>
-                <div style="color:var(--red)"><b>${res.wrong}</b><br><small>Wrong</small></div>
+            <div style="display:flex; justify-content:space-around; text-align:center; font-size: 12px;">
+                <div><b>${res.score}</b><br><small>Score</small></div>
+                <div><b>${res.correct}</b><br><small>Correct</small></div>
+                <div><b>${res.wrong}</b><br><small>Wrong</small></div>
             </div>`;
         const body = document.getElementById('res-body');
         body.innerHTML = activeTest.questions.map((q, i) => {
@@ -249,24 +235,38 @@
         }).join('');
     }
 
-    function sendMessage() {
-        const val = document.getElementById('msg-input').value;
+    function sendEntry() {
+        const val = document.getElementById('log-input').value;
         if(!val.trim()) return;
-        database.ref('secret_messages').push({ text: val, timestamp: Date.now() });
-        document.getElementById('msg-input').value = "";
+        database.ref('observations').push({ text: val, time: Date.now() });
+        document.getElementById('log-input').value = "";
     }
-    function loadMessages() {
-        database.ref('secret_messages').on('value', (snap) => {
-            const list = document.getElementById('msg-list');
+    function loadEntries() {
+        database.ref('observations').on('value', (snap) => {
+            const list = document.getElementById('log-list');
             list.innerHTML = "";
             const data = snap.val();
             if(data) Object.keys(data).forEach(key => {
-                list.innerHTML += `<div class="msg-item" ondblclick="deleteMsg('${key}')">${data[key].text}</div>`;
+                list.innerHTML += `<div class="log-item" ondblclick="removeEntry('${key}')">${data[key].text}</div>`;
             });
             list.scrollTop = list.scrollHeight;
         });
     }
-    function deleteMsg(id) { if(confirm("Remove?")) database.ref('secret_messages/' + id).remove(); }
+    function removeEntry(id) { if(confirm("Confirm deletion?")) database.ref('observations/' + id).remove(); }
+    
+    function saveResultToLocal(title, score) {
+        let history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
+        history.push({ title, score, date: new Date().toLocaleDateString() });
+        localStorage.setItem('cuet_history', JSON.stringify(history.slice(-5)));
+    }
+    function showHistory() {
+        const history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
+        if(history.length === 0) return;
+        document.getElementById('history-area').classList.remove('hidden');
+        document.getElementById('history-list').innerHTML = history.reverse().map(h => `
+            <div class="paper-card"><span>${h.title}</span> <b>Score: ${h.score}</b></div>
+        `).join('');
+    }
 </script>
 </body>
 </html>
