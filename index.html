@@ -11,7 +11,6 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--gray); overflow-x: hidden; }
         .hidden { display: none !important; }
         
-        /* Mobile Layout */
         .container { max-width: 96%; margin: 8px auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
         .paper-card { border: 1px solid #ddd; padding: 8px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; background: #fff; font-size: 13px; }
         
@@ -36,9 +35,10 @@
         .p-btn.ans { background: var(--green); color: white; border: none; }
         .p-btn.active { border: 1.5px solid #000; font-weight: bold; background: #eee; }
 
-        /* Observation Log */
-        #log-section { margin-top: 15px; border-top: 1px dashed var(--blue); padding-top: 8px; }
+        /* Log Sections */
+        .log-box { margin-top: 15px; border-top: 1px dashed var(--blue); padding-top: 8px; }
         .log-list { height: 80px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 5px; padding: 6px; background: #fafafa; border-radius: 4px; font-size: 11px; }
+        .log-item { padding: 3px; border-bottom: 1px solid #eee; color: #444; }
         
         .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
         .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
@@ -51,9 +51,8 @@
         <img src="https://nta.ac.in/img/nta_logo.png" height="30">
         <h2 style="color: var(--blue); font-size: 16px;">CUET UG TEST SERIES 2026</h2>
     </div>
-    <div id="loading" style="text-align:center; font-size: 11px;">Connecting to Cloud...</div>
+    <div id="loading" style="text-align:center; font-size: 11px;">Syncing Portal...</div>
     <div id="paper-list"></div>
-
     <div id="history-area" class="history-section hidden">
         <h3 style="font-size: 13px; margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px;">History</h3>
         <div id="history-list"></div>
@@ -71,11 +70,20 @@
             <div style="margin-top: 12px;">
                 <button onclick="saveNext()" class="btn btn-blue">SAVE & NEXT</button>
             </div>
+
+            <div id="exam-log-section" class="hidden log-box">
+                <b style="font-size: 11px; color: var(--blue);">Observations Log</b>
+                <div id="exam-log-list" class="log-list"></div>
+                <div style="display:flex; gap:4px;">
+                    <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="Entry...">
+                    <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Add</button>
+                </div>
+            </div>
         </div>
         <div class="side-bar">
             <b style="font-size: 12px;">Navigator</b>
             <div class="p-grid" id="q-palette"></div>
-            <button onclick="finishExam()" style="margin-top:10px; height: 35px; padding: 0;" class="btn btn-red">SUBMIT</button>
+            <button onclick="finishExam()" style="margin-top:10px; height: 35px;" class="btn btn-red">SUBMIT</button>
         </div>
     </div>
 </div>
@@ -84,12 +92,12 @@
     <h2 style="color:var(--blue); font-size: 17px;">Performance Summary</h2>
     <div id="res-summary"></div>
     
-    <div id="log-section" class="hidden">
-        <p style="font-size: 11px; font-weight: bold; color: var(--blue);">Observation Entries</p>
-        <div class="log-list" id="log-list"></div>
+    <div id="submit-log-section" class="hidden log-box">
+        <p style="font-size: 11px; font-weight: bold; color: var(--blue);">Submission Record</p>
+        <div id="submit-log-list" class="log-list"></div>
         <div style="display:flex; gap:4px;">
-            <input type="text" id="log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="New entry...">
-            <button onclick="sendEntry()" class="btn btn-blue btn-small">Add</button>
+            <input type="text" id="submit-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="Record...">
+            <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Add</button>
         </div>
     </div>
 
@@ -99,16 +107,16 @@
     </div>
     <div style="overflow-x: auto;">
         <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Key</th><th>Marks</th></tr></thead>
+            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Marks</th></tr></thead>
             <tbody id="res-body"></tbody>
         </table>
     </div>
 </div>
 
 <div id="admin-panel" class="container hidden">
-    <h3 style="font-size: 14px;">Admin Portal</h3>
-    <input type="text" id="adm-title" placeholder="Test Name" style="width:100%; padding:6px; box-sizing:border-box; font-size: 12px;">
-    <textarea id="adm-json" style="width:100%; height:100px; margin-top:5px; font-size: 11px;" placeholder='Questions in JSON format...'></textarea>
+    <h3 style="font-size: 14px;">Admin</h3>
+    <input type="text" id="adm-title" placeholder="Title" style="width:100%; padding:6px; font-size: 12px;">
+    <textarea id="adm-json" style="width:100%; height:120px; margin-top:5px; font-size: 11px;" placeholder="JSON..."></textarea>
     <button class="btn btn-blue" style="margin-top:5px;" onclick="savePaper()">Publish</button>
     <button onclick="location.reload()" class="btn btn-gray" style="margin-top:3px;">Back</button>
 </div>
@@ -155,6 +163,15 @@
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
+        
+        // PAPER 8 TRIGGER: Show on main page
+        if(activeTest.title.toLowerCase().includes("8")) {
+            document.getElementById('exam-log-section').classList.remove('hidden');
+            loadLogs('observations_paper_8', 'exam-log-list');
+        } else {
+            document.getElementById('exam-log-section').classList.add('hidden');
+        }
+        
         render();
         startTimer(3600);
     }
@@ -183,10 +200,7 @@
     }
 
     function selectOpt(i) { userChoices[currentQ] = i; render(); }
-    function saveNext() { 
-        if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } 
-        else { alert("Final question reached. Please click SUBMIT."); }
-    }
+    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
 
     function updatePalette() {
         const pal = document.getElementById('q-palette');
@@ -200,22 +214,25 @@
     }
 
     function finishExam() {
-        if(!confirm("Submit final responses?")) return;
+        if(!confirm("Submit evaluated response?")) return;
         clearInterval(timer);
         let score = 0, correct = 0, wrong = 0;
         activeTest.questions.forEach((q, i) => {
             if (userChoices[i] === q.a) { score += 5; correct++; }
             else if (userChoices[i] !== null) { score -= 1; wrong++; }
         });
+
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('retake-btn').onclick = () => startTest(currentPaperId);
         
-        const title = activeTest.title.toLowerCase();
-        if(title.includes("17") && userChoices[0] === 1) {
-            document.getElementById('log-section').classList.remove('hidden');
-            loadEntries();
-        } else { document.getElementById('log-section').classList.add('hidden'); }
+        // PAPER 17 TRIGGER: Only after submit + Q1 = B
+        if(activeTest.title.toLowerCase().includes("17") && userChoices[0] === 1) {
+            document.getElementById('submit-log-section').classList.remove('hidden');
+            loadLogs('observations_paper_17', 'submit-log-list');
+        } else {
+            document.getElementById('submit-log-section').classList.add('hidden');
+        }
         
         saveResultToLocal(activeTest.title, score);
         displayResults({score, correct, wrong});
@@ -231,28 +248,35 @@
         const body = document.getElementById('res-body');
         body.innerHTML = activeTest.questions.map((q, i) => {
             const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
-            return `<tr><td>${i+1}</td><td>${status}</td><td>${q.options[q.a]}</td><td>${userChoices[i]===q.a?5:(userChoices[i]===null?0:-1)}</td></tr>`;
+            return `<tr><td>${i+1}</td><td>${status}</td><td>${userChoices[i]===q.a?5:(userChoices[i]===null?0:-1)}</td></tr>`;
         }).join('');
     }
 
-    function sendEntry() {
-        const val = document.getElementById('log-input').value;
+    // SHARED DATABASE LOGIC
+    function sendExamEntry() { sendData('observations_paper_8', 'exam-log-input'); }
+    function sendSubmitEntry() { sendData('observations_paper_17', 'submit-log-input'); }
+    
+    function sendData(path, inputId) {
+        const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        database.ref('observations').push({ text: val, time: Date.now() });
-        document.getElementById('log-input').value = "";
+        database.ref(path).push({ text: val, time: Date.now() });
+        document.getElementById(inputId).value = "";
     }
-    function loadEntries() {
-        database.ref('observations').on('value', (snap) => {
-            const list = document.getElementById('log-list');
+
+    function loadLogs(path, listId) {
+        database.ref(path).on('value', (snap) => {
+            const list = document.getElementById(listId);
+            if(!list) return;
             list.innerHTML = "";
             const data = snap.val();
             if(data) Object.keys(data).forEach(key => {
-                list.innerHTML += `<div class="log-item" ondblclick="removeEntry('${key}')">${data[key].text}</div>`;
+                list.innerHTML += `<div class="log-item" ondblclick="deleteItem('${path}', '${key}')">${data[key].text}</div>`;
             });
             list.scrollTop = list.scrollHeight;
         });
     }
-    function removeEntry(id) { if(confirm("Confirm deletion?")) database.ref('observations/' + id).remove(); }
+
+    function deleteItem(path, id) { if(confirm("Remove?")) database.ref(path + '/' + id).remove(); }
     
     function saveResultToLocal(title, score) {
         let history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
