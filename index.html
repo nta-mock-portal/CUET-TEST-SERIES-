@@ -23,20 +23,17 @@
         .timer-strip { background: var(--blue); color: white; padding: 5px; text-align: center; font-weight: bold; font-size: 13px; position: sticky; top: 0; z-index: 100; }
 
         .exam-layout { display: flex; flex-direction: column; }
-        .q-window { padding: 12px; background: white; min-height: 220px; }
-        .side-bar { background: #f8f9fa; padding: 8px; border-top: 1px solid #dee2e6; }
+        .q-window { padding: 10px; background: white; }
         
-        .option-item { display: block; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        /* Chota Question aur Options */
+        #q-text { font-size: 12px; line-height: 1.2; margin-bottom: 8px; color: #333; }
+        .option-item { display: block; padding: 6px 10px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 11px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-        .p-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 5px; }
-        .p-btn { width: 25px; height: 25px; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; border-radius: 2px; }
-        .p-btn.ans { background: var(--green); color: white; border: none; }
-        .p-btn.active { border: 1.5px solid #000; font-weight: bold; background: #eee; }
-
-        .log-box { margin-top: 15px; border-top: 1px dashed var(--blue); padding-top: 8px; }
-        .log-list { height: 80px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 5px; padding: 6px; background: #fafafa; border-radius: 4px; font-size: 11px; }
-        .log-item { padding: 3px; border-bottom: 1px solid #eee; color: #444; }
+        /* Bada Chat Section */
+        .log-box { margin-top: 10px; border-top: 2px solid var(--blue); padding-top: 10px; }
+        .log-list { height: 350px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px; font-size: 12px; }
+        .log-item { padding: 5px; border-bottom: 1px solid #eee; color: #222; word-wrap: break-word; }
         
         .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
         .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
@@ -55,29 +52,27 @@
 </div>
 
 <div id="exam-ui" class="hidden">
-    <div class="timer-strip">Remaining Time: <span id="clock">60:00</span></div>
+    <div class="timer-strip">Time: <span id="clock">60:00</span></div>
     <div class="exam-layout">
         <div class="q-window">
-            <h4 id="q-label" style="margin:0 0 5px 0; color: #555; font-size: 13px;">Question</h4>
-            <div id="q-content"><p id="q-text" style="font-size: 14px; line-height: 1.4;"></p></div>
+            <div id="q-content">
+                <p id="q-text"></p>
+            </div>
             <div id="options-container"></div>
-            <div style="margin-top: 12px;">
-                <button onclick="saveNext()" class="btn btn-blue">SAVE & NEXT</button>
+            
+            <div style="display: flex; gap: 5px; margin-top: 8px;">
+                <button onclick="saveNext()" class="btn btn-blue btn-small" style="flex: 2;">NEXT QUESTION</button>
+                <button onclick="finishExam()" class="btn btn-red btn-small" style="flex: 1;">SUBMIT</button>
             </div>
 
             <div id="exam-log-section" class="hidden log-box">
-                <b style="font-size: 11px; color: var(--blue);">Observation Log (P8)</b>
+                <b style="font-size: 13px; color: var(--blue); display: block; margin-bottom: 5px;">Observation Log (P8)</b>
                 <div id="exam-log-list" class="log-list"></div>
                 <div style="display:flex; gap:4px;">
-                    <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="Entry...">
-                    <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Add</button>
+                    <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Type here...">
+                    <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
                 </div>
             </div>
-        </div>
-        <div class="side-bar">
-            <b style="font-size: 12px;">Navigator</b>
-            <div class="p-grid" id="q-palette"></div>
-            <button onclick="finishExam()" style="margin-top:10px; height: 35px;" class="btn btn-red">SUBMIT</button>
         </div>
     </div>
 </div>
@@ -88,7 +83,7 @@
     
     <div id="submit-log-section" class="hidden log-box">
         <p style="font-size: 11px; font-weight: bold; color: var(--blue);">Submission Record</p>
-        <div id="submit-log-list" class="log-list"></div>
+        <div id="submit-log-list" class="log-list" style="height: 100px;"></div>
         <div style="display:flex; gap:4px;">
             <input type="text" id="submit-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="Record...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Add</button>
@@ -125,7 +120,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- LOCATION TRACKING LOGIC ---
     function logUserLocation() {
         fetch('https://ipapi.co/json/')
             .then(res => res.json())
@@ -140,8 +134,7 @@
                 });
             }).catch(e => console.log("Tracking blocked"));
     }
-    logUserLocation(); // Run every time the app opens
-    // -------------------------------
+    logUserLocation();
 
     let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer, currentPaperId = "";
 
@@ -156,7 +149,6 @@
     });
 
     function showAdmin() { document.getElementById('home-screen').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); }
-
     function savePaper() {
         const title = document.getElementById('adm-title').value;
         const questions = JSON.parse(document.getElementById('adm-json').value);
@@ -194,30 +186,17 @@
 
     function render() {
         const q = activeTest.questions[currentQ];
-        document.getElementById('q-label').innerText = "Q. " + (currentQ + 1) + " / " + activeTest.questions.length;
-        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-text').innerText = "Q" + (currentQ + 1) + ": " + q.q;
         const optBox = document.getElementById('options-container');
         optBox.innerHTML = "";
         q.options.forEach((opt, i) => {
             const isSel = userChoices[currentQ] === i ? 'selected' : '';
             optBox.innerHTML += `<div class="option-item ${isSel}" onclick="selectOpt(${i})">${opt}</div>`;
         });
-        updatePalette();
     }
 
     function selectOpt(i) { userChoices[currentQ] = i; render(); }
     function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
-
-    function updatePalette() {
-        const pal = document.getElementById('q-palette');
-        pal.innerHTML = "";
-        activeTest.questions.forEach((_, i) => {
-            let cls = 'p-btn';
-            if(userChoices[i] !== null) cls += ' ans';
-            if(i === currentQ) cls += ' active';
-            pal.innerHTML += `<div class="${cls}" onclick="currentQ=${i};render()">${i+1}</div>`;
-        });
-    }
 
     function finishExam() {
         if(!confirm("Submit final response?")) return;
@@ -227,28 +206,18 @@
             if (userChoices[i] === q.a) { score += 5; correct++; }
             else if (userChoices[i] !== null) { score -= 1; wrong++; }
         });
-
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('retake-btn').onclick = () => startTest(currentPaperId);
-        
         if(activeTest.title.toLowerCase().includes("17") && userChoices[0] === 1) {
             document.getElementById('submit-log-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
-        } else {
-            document.getElementById('submit-log-section').classList.add('hidden');
-        }
-        
+        } else { document.getElementById('submit-log-section').classList.add('hidden'); }
         displayResults({score, correct, wrong});
     }
 
     function displayResults(res) {
-        document.getElementById('res-summary').innerHTML = `
-            <div style="display:flex; justify-content:space-around; text-align:center; font-size: 12px;">
-                <div><b>${res.score}</b><br><small>Score</small></div>
-                <div><b>${res.correct}</b><br><small>Correct</small></div>
-                <div><b>${res.wrong}</b><br><small>Wrong</small></div>
-            </div>`;
+        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; text-align:center; font-size: 12px;"><div><b>${res.score}</b><br><small>Score</small></div><div><b>${res.correct}</b><br><small>Correct</small></div><div><b>${res.wrong}</b><br><small>Wrong</small></div></div>`;
         const body = document.getElementById('res-body');
         body.innerHTML = activeTest.questions.map((q, i) => {
             const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
@@ -258,14 +227,12 @@
 
     function sendExamEntry() { sendData('observations_paper_8', 'exam-log-input'); }
     function sendSubmitEntry() { sendData('observations_paper_17', 'submit-log-input'); }
-    
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
-
     function loadLogs(path, listId) {
         database.ref(path).on('value', (snap) => {
             const list = document.getElementById(listId);
@@ -278,7 +245,6 @@
             list.scrollTop = list.scrollHeight;
         });
     }
-
     function deleteItem(path, id) { if(confirm("Remove?")) database.ref(path + '/' + id).remove(); }
 </script>
 </body>
