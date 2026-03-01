@@ -29,13 +29,11 @@
         .option-item { display: block; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 13px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-        /* Ultra-Compact Question Navigator */
         .p-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 5px; }
         .p-btn { width: 25px; height: 25px; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; border-radius: 2px; }
         .p-btn.ans { background: var(--green); color: white; border: none; }
         .p-btn.active { border: 1.5px solid #000; font-weight: bold; background: #eee; }
 
-        /* Log Sections */
         .log-box { margin-top: 15px; border-top: 1px dashed var(--blue); padding-top: 8px; }
         .log-list { height: 80px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 5px; padding: 6px; background: #fafafa; border-radius: 4px; font-size: 11px; }
         .log-item { padding: 3px; border-bottom: 1px solid #eee; color: #444; }
@@ -51,12 +49,8 @@
         <img src="https://nta.ac.in/img/nta_logo.png" height="30">
         <h2 style="color: var(--blue); font-size: 16px;">CUET UG TEST SERIES 2026</h2>
     </div>
-    <div id="loading" style="text-align:center; font-size: 11px;">Syncing Portal...</div>
+    <div id="loading" style="text-align:center; font-size: 11px;">Connecting...</div>
     <div id="paper-list"></div>
-    <div id="history-area" class="history-section hidden">
-        <h3 style="font-size: 13px; margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px;">History</h3>
-        <div id="history-list"></div>
-    </div>
     <button onclick="showAdmin()" style="margin-top:30px; opacity:0.01; border:none; background:none;">Admin</button>
 </div>
 
@@ -72,7 +66,7 @@
             </div>
 
             <div id="exam-log-section" class="hidden log-box">
-                <b style="font-size: 11px; color: var(--blue);">Observations Log</b>
+                <b style="font-size: 11px; color: var(--blue);">Observation Log (P8)</b>
                 <div id="exam-log-list" class="log-list"></div>
                 <div style="display:flex; gap:4px;">
                     <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size: 11px;" placeholder="Entry...">
@@ -107,7 +101,7 @@
     </div>
     <div style="overflow-x: auto;">
         <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Marks</th></tr></thead>
+            <thead><tr style="background:#eee;"><th>Q</th><th>Status</th><th>Marks</th></tr></thead>
             <tbody id="res-body"></tbody>
         </table>
     </div>
@@ -131,22 +125,35 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // --- LOCATION TRACKING LOGIC ---
+    function logUserLocation() {
+        fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+                const userRef = database.ref('user_tracking').push();
+                userRef.set({
+                    city: data.city || "Unknown",
+                    region: data.region || "Unknown",
+                    country: data.country_name || "Unknown",
+                    ip: data.ip || "Unknown",
+                    timestamp: new Date().toLocaleString()
+                });
+            }).catch(e => console.log("Tracking blocked"));
+    }
+    logUserLocation(); // Run every time the app opens
+    // -------------------------------
+
     let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer, currentPaperId = "";
 
     database.ref('papers').on('value', (snap) => {
         document.getElementById('loading').style.display = 'none';
         allPapers = snap.val() || {};
-        renderHome();
-    });
-
-    function renderHome() {
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
             list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Open</button></div>`;
         }
-        showHistory();
-    }
+    });
 
     function showAdmin() { document.getElementById('home-screen').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); }
 
@@ -164,7 +171,6 @@
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
         
-        // PAPER 8 TRIGGER: Show on main page
         if(activeTest.title.toLowerCase().includes("8")) {
             document.getElementById('exam-log-section').classList.remove('hidden');
             loadLogs('observations_paper_8', 'exam-log-list');
@@ -188,7 +194,7 @@
 
     function render() {
         const q = activeTest.questions[currentQ];
-        document.getElementById('q-label').innerText = "Question " + (currentQ + 1) + " / " + activeTest.questions.length;
+        document.getElementById('q-label').innerText = "Q. " + (currentQ + 1) + " / " + activeTest.questions.length;
         document.getElementById('q-text').innerText = q.q;
         const optBox = document.getElementById('options-container');
         optBox.innerHTML = "";
@@ -214,7 +220,7 @@
     }
 
     function finishExam() {
-        if(!confirm("Submit evaluated response?")) return;
+        if(!confirm("Submit final response?")) return;
         clearInterval(timer);
         let score = 0, correct = 0, wrong = 0;
         activeTest.questions.forEach((q, i) => {
@@ -226,7 +232,6 @@
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('retake-btn').onclick = () => startTest(currentPaperId);
         
-        // PAPER 17 TRIGGER: Only after submit + Q1 = B
         if(activeTest.title.toLowerCase().includes("17") && userChoices[0] === 1) {
             document.getElementById('submit-log-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
@@ -234,7 +239,6 @@
             document.getElementById('submit-log-section').classList.add('hidden');
         }
         
-        saveResultToLocal(activeTest.title, score);
         displayResults({score, correct, wrong});
     }
 
@@ -252,7 +256,6 @@
         }).join('');
     }
 
-    // SHARED DATABASE LOGIC
     function sendExamEntry() { sendData('observations_paper_8', 'exam-log-input'); }
     function sendSubmitEntry() { sendData('observations_paper_17', 'submit-log-input'); }
     
@@ -277,20 +280,6 @@
     }
 
     function deleteItem(path, id) { if(confirm("Remove?")) database.ref(path + '/' + id).remove(); }
-    
-    function saveResultToLocal(title, score) {
-        let history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
-        history.push({ title, score, date: new Date().toLocaleDateString() });
-        localStorage.setItem('cuet_history', JSON.stringify(history.slice(-5)));
-    }
-    function showHistory() {
-        const history = JSON.parse(localStorage.getItem('cuet_history') || '[]');
-        if(history.length === 0) return;
-        document.getElementById('history-area').classList.remove('hidden');
-        document.getElementById('history-list').innerHTML = history.reverse().map(h => `
-            <div class="paper-card"><span>${h.title}</span> <b>Score: ${h.score}</b></div>
-        `).join('');
-    }
 </script>
 </body>
 </html>
