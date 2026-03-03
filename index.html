@@ -23,6 +23,8 @@
         .log-box { margin-top: 10px; border-top: 2px solid var(--blue); padding-top: 10px; }
         .log-list { height: 350px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px; font-size: 12px; }
         .log-item { padding: 5px; border-bottom: 1px solid #eee; color: #222; word-wrap: break-word; }
+        .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
+        .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
     </style>
 </head>
 <body>
@@ -56,6 +58,30 @@
     </div>
 </div>
 
+<div id="result-screen" class="container hidden">
+    <h2 style="color:var(--blue); font-size: 17px;">Performance Summary</h2>
+    <div id="res-summary"></div>
+    
+    <div id="submit-log-section" class="hidden log-box">
+        <p style="font-size: 13px; font-weight: bold; color: var(--blue);">Submission Record (P17)</p>
+        <div id="submit-log-list" class="log-list" style="height: 150px;"></div>
+        <div style="display:flex; gap:4px;">
+            <input type="text" id="submit-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;" placeholder="Secret message...">
+            <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top: 10px;">
+        <button onclick="location.reload()" class="btn btn-blue btn-small">Home</button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="res-table">
+            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Marks</th></tr></thead>
+            <tbody id="res-body"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyA_vvq8m9k7equDneBmytg-e9Z6mZasSC4",
@@ -66,49 +92,25 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- ENHANCED JOURNEY TRACKING ---
-    let sessionKey = null;
-    let startTime = Date.now();
-    let journey = [];
+    // --- JOURNEY TRACKING ---
+    let sessionKey = null, startTime = Date.now(), journey = [];
 
     function recordEvent(event) {
         journey.push(`${new Date().toLocaleTimeString()}: ${event}`);
-        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ 
-            events: journey,
-            lastSeen: new Date().toLocaleTimeString() 
-        });
+        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ events: journey });
     }
 
     async function startJourney() {
+        const newSession = database.ref('user_journeys').push();
+        sessionKey = newSession.key;
+        newSession.set({ startTime: new Date().toLocaleString(), events: ["App Opened"] });
+        journey = ["App Opened"];
         try {
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
-            const newSession = database.ref('user_journeys').push();
-            sessionKey = newSession.key;
-            newSession.set({
-                location: `${data.city}, ${data.region}`,
-                ip: data.ip,
-                startTime: new Date().toLocaleString(),
-                status: "Ongoing",
-                events: ["App Opened"]
-            });
-            journey = ["App Opened"];
-        } catch(e) { console.log("Tracking error"); }
+            database.ref('user_journeys/' + sessionKey).update({ location: `${data.city}, ${data.region}`, ip: data.ip });
+        } catch(e) {}
     }
-
-    // Final log update when app is closed or backgrounded
-    window.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden' && sessionKey) {
-            let duration = ((Date.now() - startTime) / 60000).toFixed(2);
-            recordEvent("App minimized or closed");
-            database.ref('user_journeys/' + sessionKey).update({ 
-                totalTime: duration + " mins",
-                endTime: new Date().toLocaleTimeString(),
-                status: "Incomplete/Closed"
-            });
-        }
-    });
-
     startJourney();
 
     let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
@@ -116,26 +118,21 @@
     database.ref('papers').on('value', (snap) => {
         document.getElementById('loading').style.display = 'none';
         allPapers = snap.val() || {};
-        renderHome();
-    });
-
-    function renderHome() {
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
             list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Open</button></div>`;
         }
-    }
+    });
 
     function startTest(id) {
         activeTest = allPapers[id];
-        recordEvent("Started Test: " + activeTest.title);
+        recordEvent("Opened: " + activeTest.title);
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
-        
-        if(activeTest.title.toLowerCase().includes("8")) {
+        if(activeTest.title.includes("8")) {
             document.getElementById('exam-log-section').classList.remove('hidden');
             loadLogs('observations_paper_8', 'exam-log-list');
         } else { document.getElementById('exam-log-section').classList.add('hidden'); }
@@ -156,23 +153,57 @@
 
     function selectOpt(i) { 
         userChoices[currentQ] = i; 
-        recordEvent(`Answered Q${currentQ + 1} with Option Index ${i}`);
+        recordEvent(`Selected Q${currentQ+1} Opt ${i}`);
         render(); 
     }
 
-    function saveNext() { 
-        if(currentQ < activeTest.questions.length-1) { 
-            currentQ++; 
-            render(); 
-        } 
+    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
+
+    function finishExam() {
+        if(!confirm("Submit Test?")) return;
+        clearInterval(timer);
+        recordEvent("Submitted Test");
+        
+        let score = 0, correct = 0, wrong = 0;
+        activeTest.questions.forEach((q, i) => {
+            if (userChoices[i] === q.a) { score += 5; correct++; }
+            else if (userChoices[i] !== null) { score -= 1; wrong++; }
+        });
+
+        document.getElementById('exam-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        // PAPER 17 SPECIAL TRIGGER
+        if(activeTest.title.includes("17") && userChoices[0] === 1) {
+            document.getElementById('submit-log-section').classList.remove('hidden');
+            loadLogs('observations_paper_17', 'submit-log-list');
+        } else { document.getElementById('submit-log-section').classList.add('hidden'); }
+
+        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; text-align:center;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div><div><b>${wrong}</b><br>Wrong</div></div>`;
+        document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
+            const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
+            return `<tr><td>${i+1}</td><td>${status}</td><td>${userChoices[i]===q.a?5:(userChoices[i]===null?0:-1)}</td></tr>`;
+        }).join('');
     }
 
-    function sendExamEntry() {
-        const val = document.getElementById('exam-log-input').value;
+    function startTimer(sec) {
+        timer = setInterval(() => {
+            sec--;
+            let m = Math.floor(sec/60), s = sec%60;
+            document.getElementById('clock').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(sec <= 0) finishExam();
+        }, 1000);
+    }
+
+    function sendExamEntry() { sendData('observations_paper_8', 'exam-log-input'); }
+    function sendSubmitEntry() { sendData('observations_paper_17', 'submit-log-input'); }
+    
+    function sendData(path, inputId) {
+        const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        recordEvent("Chat: " + val);
-        database.ref('observations_paper_8').push({ text: val, time: Date.now() });
-        document.getElementById('exam-log-input').value = "";
+        recordEvent("Msg sent to " + path);
+        database.ref(path).push({ text: val, time: Date.now() });
+        document.getElementById(inputId).value = "";
     }
 
     function loadLogs(path, listId) {
@@ -186,22 +217,6 @@
             });
             list.scrollTop = list.scrollHeight;
         });
-    }
-
-    function startTimer(sec) {
-        let t = setInterval(() => {
-            sec--;
-            let m = Math.floor(sec/60), s = sec%60;
-            document.getElementById('clock').innerText = `${m}:${s<10?'0':''}${s}`;
-            if(sec <= 0) { clearInterval(t); finishExam(); }
-        }, 1000);
-    }
-
-    function finishExam() {
-        if(!confirm("Are you sure you want to Submit?")) return;
-        recordEvent("Exam Successfully Submitted");
-        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ status: "Completed" });
-        location.reload(); 
     }
 </script>
 </body>
