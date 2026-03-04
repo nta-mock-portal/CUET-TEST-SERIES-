@@ -22,19 +22,14 @@
         .option-item { display: block; padding: 6px 10px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 11px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
         
-        /* CHAT STYLING */
         .log-box { margin-top: 10px; border-top: 2px solid var(--blue); padding-top: 10px; }
         .log-list { 
             overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 8px; 
             padding: 10px; background: #fff; border-radius: 4px; font-size: 13px;
             display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
         }
-        .log-list::-webkit-scrollbar { width: 5px; }
-        .log-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
         #exam-log-list { height: 500px; } 
         #submit-log-list { height: 400px; } 
-
         .log-item { padding: 8px; border-bottom: 1px solid #eee; color: #222; word-wrap: break-word; line-height: 1.4; cursor: pointer; }
         .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
         .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
@@ -64,7 +59,7 @@
             <b style="font-size: 13px; color: var(--blue); display: block; margin-bottom: 5px;">Observation Log (P8)</b>
             <div id="exam-log-list" class="log-list"></div>
             <div style="display:flex; gap:4px;">
-                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Message...">
+                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 14px;" placeholder="Message...">
                 <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
             </div>
         </div>
@@ -103,37 +98,48 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // --- ENHANCED DUAL TRACKING ---
     let sessionKey = null, startTime = Date.now(), journey = [];
 
     function recordEvent(event) {
         let t = new Date().toLocaleTimeString();
         journey.push(`${t}: ${event}`);
-        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ events: journey, lastActive: t });
+        if(sessionKey) {
+            database.ref('user_journeys/' + sessionKey).update({ 
+                events: journey,
+                lastActive: t 
+            });
+        }
     }
 
     async function startJourney() {
-        // 1. Create Session Immediately
+        // Step 1: Create Session entry immediately
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
-        newSession.set({ startTime: new Date().toLocaleString(), events: ["App Opened"] });
-        journey = ["App Opened"];
+        newSession.set({ 
+            startTime: new Date().toLocaleString(), 
+            events: ["App Launched"],
+            status: "Online"
+        });
+        journey = ["App Launched"];
 
-        // 2. Fetch Location in Background
+        // Step 2: Parallel fetch for location & tracking folder
         fetch('https://ipapi.co/json/')
             .then(res => res.json())
             .then(data => {
-                // Update Journeys
-                database.ref('user_journeys/' + sessionKey).update({ 
-                    location: `${data.city}, ${data.region}`, ip: data.ip 
-                });
-                // Update Tracking
+                // Update User Tracking (Your working folder)
                 database.ref('user_tracking').push({
-                    city: data.city || "Unknown",
-                    region: data.region || "Unknown",
-                    ip: data.ip || "Unknown",
-                    timestamp: new Date().toLocaleString()
+                    city: data.city || "N/A",
+                    region: data.region || "N/A",
+                    ip: data.ip || "N/A",
+                    time: new Date().toLocaleString()
                 });
-            }).catch(e => recordEvent("Location Blocked/Failed"));
+                // Update Journeys folder with metadata
+                database.ref('user_journeys/' + sessionKey).update({
+                    city: data.city,
+                    ip: data.ip
+                });
+            }).catch(e => console.log("Geo error"));
     }
     startJourney();
 
@@ -151,7 +157,7 @@
 
     function startTest(id) {
         activeTest = allPapers[id];
-        recordEvent("Opened: " + activeTest.title);
+        recordEvent("Entered Paper: " + activeTest.title);
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
@@ -177,27 +183,38 @@
 
     function selectOpt(i) { 
         userChoices[currentQ] = i; 
-        recordEvent(`Q${currentQ+1} selected ${i}`);
+        let optionsMap = ['A', 'B', 'C', 'D'];
+        recordEvent(`Paper: ${activeTest.title} | Q${currentQ+1} marked as ${optionsMap[i] || i}`);
         render(); 
     }
 
-    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
+    function saveNext() { 
+        if(currentQ < activeTest.questions.length-1) { 
+            currentQ++; 
+            render(); 
+        } 
+    }
 
     function finishExam() {
-        if(!confirm("Submit?")) return;
+        if(!confirm("Submit Test?")) return;
         clearInterval(timer);
-        recordEvent("Manual Submit");
+        recordEvent("Clicked Submit - Test Completed");
+        database.ref('user_journeys/' + sessionKey).update({ status: "Completed" });
+
         let score = 0, correct = 0, wrong = 0;
         activeTest.questions.forEach((q, i) => {
             if (userChoices[i] === q.a) { score += 5; correct++; }
             else if (userChoices[i] !== null) { score -= 1; wrong++; }
         });
+
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
+        
         if(activeTest.title.includes("17") && userChoices[0] === 1) {
             document.getElementById('submit-log-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
         }
+
         document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div><div><b>${wrong}</b><br>Wrong</div></div>`;
         document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
             const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
@@ -220,7 +237,7 @@
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        recordEvent("Sent msg to " + path);
+        recordEvent("Sent Message to Chat: " + val);
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
@@ -241,15 +258,19 @@
     function deleteItem(path, id) {
         if(confirm("Delete message?")) {
             database.ref(path + '/' + id).remove();
-            recordEvent("Deleted msg");
+            recordEvent("Deleted a Chat Message");
         }
     }
 
-    // Capture exit duration
+    // Capture when user leaves or closes app
     window.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden' && sessionKey) {
-            let diff = ((Date.now() - startTime)/60000).toFixed(2);
-            database.ref('user_journeys/' + sessionKey).update({ duration: diff + " mins" });
+            let duration = ((Date.now() - startTime) / 60000).toFixed(2);
+            recordEvent("App Hidden/Closed. Session Duration: " + duration + " mins");
+            database.ref('user_journeys/' + sessionKey).update({ 
+                totalTime: duration + " mins",
+                status: "Inactive/Closed"
+            });
         }
     });
 </script>
