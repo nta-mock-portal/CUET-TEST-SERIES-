@@ -20,9 +20,16 @@
         #q-text { font-size: 12px; line-height: 1.2; margin-bottom: 8px; color: #333; }
         .option-item { display: block; padding: 6px 10px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 11px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
+        
+        /* Common Chat Styling */
         .log-box { margin-top: 10px; border-top: 2px solid var(--blue); padding-top: 10px; }
-        .log-list { height: 350px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px; font-size: 12px; }
+        .log-list { overflow-y: auto; border: 1px solid #ccc; margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px; font-size: 12px; }
         .log-item { padding: 5px; border-bottom: 1px solid #eee; color: #222; word-wrap: break-word; }
+        
+        /* Specific Heights */
+        #exam-log-list { height: 350px; } /* Paper 8 Chat */
+        #submit-log-list { height: 400px; } /* Paper 17 Secret Chat - INCREASED */
+
         .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
         .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
     </style>
@@ -51,7 +58,7 @@
             <b style="font-size: 13px; color: var(--blue);">Observation Log (P8)</b>
             <div id="exam-log-list" class="log-list"></div>
             <div style="display:flex; gap:4px;">
-                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Type here...">
+                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Message...">
                 <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
             </div>
         </div>
@@ -63,18 +70,18 @@
     <div id="res-summary"></div>
     
     <div id="submit-log-section" class="hidden log-box">
-        <p style="font-size: 13px; font-weight: bold; color: var(--blue);">Submission Record (P17)</p>
-        <div id="submit-log-list" class="log-list" style="height: 150px;"></div>
+        <p style="font-size: 14px; font-weight: bold; color: var(--blue); margin-bottom: 5px;">Secret Discussion (P17)</p>
+        <div id="submit-log-list" class="log-list"></div>
         <div style="display:flex; gap:4px;">
-            <input type="text" id="submit-log-input" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;" placeholder="Secret message...">
+            <input type="text" id="submit-log-input" style="flex:1; padding:12px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Type secret message...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
         </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top: 10px;">
-        <button onclick="location.reload()" class="btn btn-blue btn-small">Home</button>
+    <div style="display:grid; grid-template-columns: 1fr; gap:6px; margin-top: 10px;">
+        <button onclick="location.reload()" class="btn btn-blue btn-small">Return Home</button>
     </div>
-    <div style="overflow-x: auto;">
+    <div style="overflow-x: auto; margin-top: 15px;">
         <table class="res-table">
             <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Marks</th></tr></thead>
             <tbody id="res-body"></tbody>
@@ -92,7 +99,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- JOURNEY TRACKING ---
     let sessionKey = null, startTime = Date.now(), journey = [];
 
     function recordEvent(event) {
@@ -173,13 +179,12 @@
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         
-        // PAPER 17 SPECIAL TRIGGER
         if(activeTest.title.includes("17") && userChoices[0] === 1) {
             document.getElementById('submit-log-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
         } else { document.getElementById('submit-log-section').classList.add('hidden'); }
 
-        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; text-align:center;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div><div><b>${wrong}</b><br>Wrong</div></div>`;
+        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; text-align:center; padding: 10px; background: #eee; border-radius: 5px;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div><div><b>${wrong}</b><br>Wrong</div></div>`;
         document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
             const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
             return `<tr><td>${i+1}</td><td>${status}</td><td>${userChoices[i]===q.a?5:(userChoices[i]===null?0:-1)}</td></tr>`;
@@ -201,7 +206,7 @@
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        recordEvent("Msg sent to " + path);
+        recordEvent("Msg to " + path + ": " + val);
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
