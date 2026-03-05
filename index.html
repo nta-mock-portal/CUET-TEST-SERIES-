@@ -18,29 +18,34 @@
         .btn-small { width: auto; padding: 5px 10px; font-size: 11px; }
         .timer-strip { background: var(--blue); color: white; padding: 5px; text-align: center; font-weight: bold; font-size: 12px; position: sticky; top: 0; z-index: 100; }
         
-        /* Official Paper Layout (Android Optimized) */
-        .official-q-box { padding: 10px; min-height: 200px; }
+        /* Standard UI */
+        .official-q-box { padding: 10px; min-height: 150px; }
         .official-q-text { font-size: 14px; font-weight: bold; margin-bottom: 10px; line-height: 1.4; }
         .option-item { display: block; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 13px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-        /* Compact Navigator for Mobile */
-        .p-nav-box { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .p-nav-box { margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px; }
         .p-grid { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; }
         .p-btn { min-width: 35px; height: 35px; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; border-radius: 4px; flex-shrink: 0; }
         .p-btn.ans { background: var(--green); color: white; border: none; }
         .p-btn.active { border: 2px solid #000; font-weight: bold; background: #eee; }
 
-        /* PAPER 8/17 UI (As per your requirement) */
+        /* PAPER 8 UI */
         .special-q-text { font-size: 11px; line-height: 1.2; margin-bottom: 5px; color: #444; font-weight: bold; }
         .special-opt { display: inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        .log-box { margin-top: 5px; border-top: 2px solid var(--blue); display: flex; flex-direction: column; }
-        .log-list { height: 75vh; overflow-y: scroll; border: 1px solid #ccc; margin: 0; padding: 5px; background: #fff; font-size: 11px; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
-        .input-container { display: flex; gap: 2px; padding: 5px; background: #eee; border: 1px solid #ccc; margin-top: -1px; border-radius: 0 0 4px 4px; }
-        .log-item { padding: 4px 6px; border-bottom: 1px solid #f1f1f1; color: #222; word-wrap: break-word; line-height: 1.3; cursor: pointer; }
         
-        .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .res-table th, .res-table td { border: 1px solid #ddd; padding: 4px; text-align: center; }
+        /* CHAT STYLING */
+        .log-box { margin-top: 5px; border-top: 2px solid var(--blue); display: flex; flex-direction: column; }
+        .log-list { overflow-y: scroll; border: 1px solid #ccc; margin: 0; padding: 5px; background: #fff; font-size: 11px; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
+        
+        #exam-log-list { height: 75vh; } /* P8 Bada Chat */
+        #submit-log-list { height: 180px; } /* P17 Chota Chat for Single Page */
+
+        .input-container { display: flex; gap: 2px; padding: 5px; background: #eee; border: 1px solid #ccc; margin-top: -1px; border-radius: 0 0 4px 4px; }
+        .log-item { padding: 4px 6px; border-bottom: 1px solid #f1f1f1; color: #222; word-wrap: break-word; line-height: 1.3; }
+        
+        .res-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 9px; }
+        .res-table th, .res-table td { border: 1px solid #ddd; padding: 3px; text-align: center; }
     </style>
 </head>
 <body>
@@ -57,18 +62,18 @@
 <div id="exam-ui" class="hidden">
     <div class="timer-strip">Timer: <span id="clock">60:00</span></div>
     
-    <div id="special-layout" class="hidden container">
-        <p id="spec-q-text" class="special-q-text"></p>
-        <div id="spec-options"></div>
+    <div id="p8-special-layout" class="hidden container">
+        <p id="p8-q-text" class="special-q-text"></p>
+        <div id="p8-options"></div>
         <div style="display: flex; gap: 5px; margin-top: 5px;">
             <button onclick="saveNext()" class="btn btn-blue btn-small">NEXT</button>
             <button onclick="finishExam()" class="btn btn-red btn-small">SUBMIT</button>
         </div>
-        <div id="exam-log-section" class="log-box">
-            <b style="font-size: 12px; color: var(--blue); padding: 5px; display: block;">Observation Log</b>
+        <div class="log-box">
+            <b style="font-size: 11px; color: var(--blue); padding: 5px; display: block;">Observation Log (P8)</b>
             <div id="exam-log-list" class="log-list"></div>
             <div class="input-container">
-                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Message...">
+                <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #bbb; font-size: 12px;" placeholder="Message...">
                 <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
             </div>
         </div>
@@ -76,39 +81,38 @@
 
     <div id="standard-layout" class="hidden container">
         <div class="official-q-box">
-            <div id="off-q-label" style="color:var(--blue); font-size: 12px; font-weight: bold;">Question 1</div>
+            <div id="off-q-label" style="color:var(--blue); font-size: 11px; font-weight: bold;">Question</div>
             <p id="off-q-text" class="official-q-text"></p>
             <div id="off-options"></div>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="saveNext()" class="btn btn-blue">Save & Next</button>
-            <button onclick="finishExam()" class="btn btn-red" style="width: 40%;">Submit</button>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="saveNext()" class="btn btn-blue btn-small">Save & Next</button>
+            <button onclick="finishExam()" class="btn btn-red btn-small" style="width: 30%;">Submit</button>
         </div>
         <div class="p-nav-box">
-            <b style="font-size: 11px; color: #666;">Jump to Question:</b>
             <div id="off-palette" class="p-grid"></div>
         </div>
     </div>
 </div>
 
 <div id="result-screen" class="container hidden">
-    <h2 style="color:var(--blue); font-size: 16px;">Test Analysis</h2>
-    <div id="res-summary"></div>
-    <div id="p17-chat-box" class="hidden log-box">
-        <p style="font-size: 13px; font-weight: bold; color: var(--blue); padding: 5px;">Secret Chat (P17)</p>
-        <div id="submit-log-list" class="log-list" style="height: 300px;"></div>
+    <h2 style="color:var(--blue); font-size: 14px; margin: 5px 0;">Analysis</h2>
+    <div id="res-summary" style="font-size: 12px; margin-bottom: 5px;"></div>
+    
+    <div id="p17-secret-section" class="hidden log-box">
+        <p style="font-size: 12px; font-weight: bold; color: var(--blue); padding: 4px; margin: 0;">Paper Discussion Area</p>
+        <div id="submit-log-list" class="log-list"></div>
         <div class="input-container">
-            <input type="text" id="submit-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Secret message...">
+            <input type="text" id="submit-log-input" style="flex:1; padding:6px; border:1px solid #bbb; font-size: 11px;" placeholder="Discuss here...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
         </div>
     </div>
-    <button onclick="location.reload()" class="btn btn-blue btn-small" style="margin-top:10px;">Return Home</button>
-    <div style="overflow-x: auto; margin-top: 10px;">
-        <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q.No</th><th>Result</th></tr></thead>
-            <tbody id="res-body"></tbody>
-        </table>
-    </div>
+
+    <button onclick="location.reload()" class="btn btn-blue btn-small" style="margin-top:5px;">Home</button>
+    <table class="res-table">
+        <thead><tr style="background:#eee;"><th>Q</th><th>Res</th></tr></thead>
+        <tbody id="res-body"></tbody>
+    </table>
 </div>
 
 <script>
@@ -121,58 +125,41 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let sessionKey = null, startTime = Date.now(), journey = [];
-    let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
+    let sessionKey = null, userChoices = [], currentQ = 0, activeTest = null;
 
-    // --- TRACKING ---
     async function startJourney() {
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
-        newSession.set({ startTime: new Date().toLocaleString(), events: ["App Opened"] });
         fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
-            const info = { city: data.city, ip: data.ip, time: new Date().toLocaleString() };
-            database.ref('user_tracking').push(info);
-            database.ref('user_journeys/' + sessionKey).update(info);
+            database.ref('user_tracking').push({ city: data.city, ip: data.ip, time: new Date().toLocaleString() });
         });
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                database.ref('user_journeys/' + sessionKey).update({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-            }, null);
-        }
     }
     startJourney();
 
-    function recordEvent(event) {
-        journey.push(`${new Date().toLocaleTimeString()}: ${event}`);
-        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ events: journey });
-    }
-
-    // --- APP ---
     database.ref('papers').on('value', (snap) => {
         document.getElementById('loading').style.display = 'none';
-        allPapers = snap.val() || {};
+        const allPapers = snap.val() || {};
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
-            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Open</button></div>`;
+            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}', ${JSON.stringify(allPapers[id]).replace(/"/g, '&quot;')})">Open</button></div>`;
         }
     });
 
-    function startTest(id) {
-        activeTest = allPapers[id];
+    function startTest(id, paperData) {
+        activeTest = paperData;
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
 
-        const isSpecial = activeTest.title.includes("8") || activeTest.title.includes("17");
-        if(isSpecial) {
-            document.getElementById('special-layout').classList.remove('hidden');
+        if(activeTest.title.includes("8")) {
+            document.getElementById('p8-special-layout').classList.remove('hidden');
             document.getElementById('standard-layout').classList.add('hidden');
-            if(activeTest.title.includes("8")) loadLogs('observations_paper_8', 'exam-log-list');
+            loadLogs('observations_paper_8', 'exam-log-list');
         } else {
             document.getElementById('standard-layout').classList.remove('hidden');
-            document.getElementById('special-layout').classList.add('hidden');
+            document.getElementById('p8-special-layout').classList.add('hidden');
         }
         render();
         startTimer(3600);
@@ -180,75 +167,49 @@
 
     function render() {
         const q = activeTest.questions[currentQ];
-        const isSpecial = activeTest.title.includes("8") || activeTest.title.includes("17");
-
-        if(isSpecial) {
-            document.getElementById('spec-q-text').innerText = "Q" + (currentQ + 1) + ": " + q.q;
-            const optBox = document.getElementById('spec-options');
-            optBox.innerHTML = "";
-            q.options.forEach((opt, i) => {
-                const isSel = userChoices[currentQ] === i ? 'selected' : '';
-                optBox.innerHTML += `<div class="special-opt ${isSel}" onclick="selectOpt(${i})">${opt}</div>`;
-            });
+        if(activeTest.title.includes("8")) {
+            document.getElementById('p8-q-text').innerText = "Q" + (currentQ + 1) + ": " + q.q;
+            const optBox = document.getElementById('p8-options');
+            optBox.innerHTML = q.options.map((opt, i) => `<div class="special-opt ${userChoices[currentQ] === i ? 'selected' : ''}" onclick="selectOpt(${i})">${opt}</div>`).join('');
         } else {
-            document.getElementById('off-q-label').innerText = "Question " + (currentQ + 1) + " of " + activeTest.questions.length;
+            document.getElementById('off-q-label').innerText = "Question " + (currentQ + 1);
             document.getElementById('off-q-text').innerText = q.q;
             const optBox = document.getElementById('off-options');
-            optBox.innerHTML = "";
-            q.options.forEach((opt, i) => {
-                const isSel = userChoices[currentQ] === i ? 'selected' : '';
-                optBox.innerHTML += `<div class="option-item ${isSel}" onclick="selectOpt(${i})">${opt}</div>`;
-            });
+            optBox.innerHTML = q.options.map((opt, i) => `<div class="option-item ${userChoices[currentQ] === i ? 'selected' : ''}" onclick="selectOpt(${i})">${opt}</div>`).join('');
             updatePalette();
         }
     }
 
-    function selectOpt(i) { 
-        userChoices[currentQ] = i; 
-        recordEvent(`Q${currentQ+1} selected ${i}`);
-        render(); 
-    }
-
+    function selectOpt(i) { userChoices[currentQ] = i; render(); }
     function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
 
     function updatePalette() {
         const pal = document.getElementById('off-palette');
-        pal.innerHTML = "";
-        activeTest.questions.forEach((_, i) => {
-            let cls = 'p-btn';
-            if(userChoices[i] !== null) cls += ' ans';
-            if(i === currentQ) cls += ' active';
-            pal.innerHTML += `<div class="${cls}" onclick="currentQ=${i};render()">${i+1}</div>`;
-        });
+        pal.innerHTML = activeTest.questions.map((_, i) => `<div class="p-btn ${userChoices[i] !== null ? 'ans' : ''} ${i === currentQ ? 'active' : ''}" onclick="currentQ=${i};render()">${i+1}</div>`).join('');
     }
 
     function finishExam() {
-        if(!confirm("Submit final response?")) return;
-        clearInterval(timer);
-        let score = 0, correct = 0;
-        activeTest.questions.forEach((q, i) => { if (userChoices[i] === q.a) { score += 5; correct++; } });
-
+        if(!confirm("Submit?")) return;
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
 
         if(activeTest.title.includes("17") && userChoices[0] === 1) {
-            document.getElementById('p17-chat-box').classList.remove('hidden');
+            document.getElementById('p17-secret-section').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
         }
 
-        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; background:#f4f4f4; padding:10px; border-radius:5px;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div></div>`;
-        document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
-            const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
-            return `<tr><td>${i+1}</td><td>${status}</td></tr>`;
-        }).join('');
+        let score = 0, correct = 0;
+        activeTest.questions.forEach((q, i) => { if (userChoices[i] === q.a) { score += 5; correct++; } });
+        document.getElementById('res-summary').innerHTML = `<b>Score: ${score}</b> | Correct: ${correct}`;
+        document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => `<tr><td>${i+1}</td><td>${userChoices[i]===q.a?'✅':'❌'}</td></tr>`).join('');
     }
 
     function startTimer(sec) {
-        timer = setInterval(() => {
+        let timer = setInterval(() => {
             sec--;
             let m = Math.floor(sec/60), s = sec%60;
             document.getElementById('clock').innerText = `${m}:${s<10?'0':''}${s}`;
-            if(sec <= 0) finishExam();
+            if(sec <= 0 || document.getElementById('exam-ui').classList.contains('hidden')) clearInterval(timer);
         }, 1000);
     }
 
@@ -275,7 +236,7 @@
     }
 
     function deleteItem(path, id) {
-        if(confirm("Delete message?")) database.ref(path + '/' + id).remove();
+        if(confirm("Delete?")) database.ref(path + '/' + id).remove();
     }
 </script>
 </body>
