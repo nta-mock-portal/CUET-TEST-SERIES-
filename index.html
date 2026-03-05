@@ -7,104 +7,119 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
-        :root { --blue: #004a99; --green: #27ae60; --red: #e74c3c; --gray: #f4f7f6; }
+        :root { --blue: #004a99; --green: #27ae60; --red: #e74c3c; --gray: #f4f7f6; --orange: #f39c12; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--gray); overflow-x: hidden; }
         .hidden { display: none !important; }
         .container { max-width: 98%; margin: 5px auto; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
-        .paper-card { border: 1px solid #ddd; padding: 8px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; background: #fff; font-size: 13px; }
-        .btn { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; width: 100%; }
-        .btn-blue { background: var(--blue); }
-        .btn-red { background: var(--red); }
-        .btn-small { width: auto; padding: 5px 10px; font-size: 11px; }
-        .timer-strip { background: var(--blue); color: white; padding: 3px; text-align: center; font-weight: bold; font-size: 11px; position: sticky; top: 0; z-index: 100; }
+        .paper-card { border: 1px solid #ddd; padding: 10px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; background: #fff; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        #q-text { font-size: 11px; line-height: 1.2; margin-bottom: 5px; color: #444; font-weight: bold; }
-        .option-item { display: inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); }
+        /* Official CUET Layout */
+        .exam-container { display: flex; flex-direction: row; height: calc(100vh - 40px); overflow: hidden; }
+        .main-q-area { flex: 3; overflow-y: auto; padding: 15px; border-right: 1px solid #ccc; background: #fff; }
+        .sidebar-nav { flex: 1; background: #f9f9f9; padding: 10px; display: flex; flex-direction: column; }
         
-        /* ZERO GAP CHAT STYLING */
-        .log-box { margin-top: 5px; display: flex; flex-direction: column; border-top: 2px solid var(--blue); }
-        .log-list { 
-            height: 70vh; 
-            overflow-y: scroll; 
-            border: 1px solid #ccc; 
-            margin: 0 !important; 
-            padding: 5px; 
-            background: #fff; 
-            font-size: 11px; 
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* Input container ko list ke sath chipka diya */
-        .input-container {
-            display: flex;
-            gap: 2px;
-            padding: 5px;
-            background: #eee;
-            border: 1px solid #ccc;
-            margin-top: -1px; /* Ye line gap ko khatam kar degi */
-            border-radius: 0 0 4px 4px;
+        @media (max-width: 768px) {
+            .exam-container { flex-direction: column; }
+            .sidebar-nav { height: auto; border-top: 1px solid #ccc; }
         }
 
-        .log-item { padding: 4px 6px; border-bottom: 1px solid #f1f1f1; color: #222; word-wrap: break-word; line-height: 1.3; cursor: pointer; }
-        .res-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .res-table th, .res-table td { border: 1px solid #ddd; padding: 4px; text-align: center; }
+        .btn { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        .btn-blue { background: var(--blue); }
+        .btn-red { background: var(--red); }
+        .btn-green { background: var(--green); }
+        .btn-small { padding: 5px 12px; font-size: 12px; }
+
+        .timer-strip { background: var(--blue); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 13px; }
+
+        /* Question Palette */
+        .p-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .p-btn { width: 35px; height: 35px; border: 1px solid #ccc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; border-radius: 4px; }
+        .p-btn.ans { background: var(--green); color: white; border: none; }
+        .p-btn.not-ans { background: var(--red); color: white; border: none; }
+        .p-btn.active { border: 2px solid #000; font-weight: bold; }
+
+        /* Chat Styling (Paper 8/17) */
+        .chat-list { height: 65vh; overflow-y: scroll; border: 1px solid #ccc; padding: 8px; background: #fff; font-size: 12px; }
+        .chat-input-box { display: flex; margin-top: -1px; border: 1px solid #ccc; background: #eee; padding: 5px; }
+        .log-item { padding: 5px; border-bottom: 1px solid #eee; word-wrap: break-word; cursor: pointer; }
+
+        .option-item { display: block; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .option-item:hover { background: #f0f7ff; }
+        .option-item.selected { background: #e3f2fd; border-color: var(--blue); font-weight: bold; color: var(--blue); }
+        
+        .res-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .res-table th, .res-table td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div id="home-screen" class="container">
-    <div style="text-align: center; margin-bottom: 10px;">
-        <img src="https://nta.ac.in/img/nta_logo.png" height="25">
-        <h2 style="color: var(--blue); font-size: 15px;">CUET UG PORTAL - 2026</h2>
+    <div style="text-align: center; margin-bottom: 15px;">
+        <img src="https://nta.ac.in/img/nta_logo.png" height="35">
+        <h2 style="color: var(--blue); margin: 5px 0;">CUET UG PORTAL - 2026</h2>
     </div>
-    <div id="loading" style="text-align:center; font-size: 10px;">Connecting...</div>
+    <div id="loading" style="text-align:center;">Connecting to NTA Servers...</div>
     <div id="paper-list"></div>
 </div>
 
 <div id="exam-ui" class="hidden">
-    <div class="timer-strip">Timer: <span id="clock">60:00</span></div>
-    <div class="q-window container">
-        <div id="compact-q-area">
-            <p id="q-text"></p>
-            <div id="options-container"></div>
-            <div style="display: flex; gap: 5px; margin-top: 5px;">
-                <button onclick="saveNext()" class="btn btn-blue btn-small">NEXT</button>
-                <button onclick="finishExam()" class="btn btn-red btn-small">SUBMIT</button>
+    <div class="timer-strip">Time Remaining: <span id="clock">60:00</span></div>
+    
+    <div id="special-layout" class="hidden container">
+        <p id="spec-q-text" style="font-size: 12px; font-weight: bold;"></p>
+        <div id="spec-options"></div>
+        <div style="margin: 10px 0; display:flex; gap:5px;">
+            <button onclick="saveNext()" class="btn btn-blue btn-small">NEXT</button>
+            <button onclick="finishExam()" class="btn btn-red btn-small">SUBMIT</button>
+        </div>
+        <div id="spec-chat-area" class="log-box">
+            <b id="chat-label" style="font-size: 13px; color: var(--blue);">Observation Log</b>
+            <div id="exam-log-list" class="chat-list"></div>
+            <div class="chat-input-box">
+                <input type="text" id="exam-log-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="Message...">
+                <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
             </div>
         </div>
+    </div>
 
-        <div id="exam-log-section" class="hidden log-box">
-            <b style="font-size: 12px; color: var(--blue); padding: 5px; display: block; background: #fff; margin: 0;">Observation Log (P8)</b>
-            <div id="exam-log-list" class="log-list"></div>
-            <div class="input-container">
-                <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Message...">
-                <button onclick="sendExamEntry()" class="btn btn-blue btn-small">Send</button>
+    <div id="official-layout" class="hidden exam-container">
+        <div class="main-q-area">
+            <h3 id="off-q-label" style="color:var(--blue); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Question 1</h3>
+            <p id="off-q-text" style="font-size: 15px; line-height: 1.5;"></p>
+            <div id="off-options"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="saveNext()" class="btn btn-blue">Save & Next</button>
+                <button onclick="userChoices[currentQ]=null; render();" class="btn btn-small" style="background:#888; margin-left:10px;">Clear Response</button>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <b style="font-size: 14px;">Question Palette</b>
+            <div id="off-palette" class="p-grid"></div>
+            <div style="margin-top: auto; padding-top: 20px;">
+                <button onclick="finishExam()" class="btn btn-red" style="width: 100%;">Final Submit</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="result-screen" class="container hidden">
-    <h2 style="color:var(--blue); font-size: 16px;">Test Analysis</h2>
-    <div id="res-summary"></div>
+    <h2 style="color:var(--blue);">Performance Analysis</h2>
+    <div id="res-summary" style="margin-bottom: 15px;"></div>
     
-    <div id="submit-log-section" class="hidden log-box">
-        <p style="font-size: 13px; font-weight: bold; color: var(--blue); background: #fff; margin: 0; padding: 5px;">Secret Chat (P17)</p>
-        <div id="submit-log-list" class="log-list" style="height: 300px;"></div>
-        <div class="input-container">
-            <input type="text" id="submit-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Secret msg...">
+    <div id="p17-chat-box" class="hidden" style="margin-top:20px;">
+        <b style="color:var(--blue);">Secret Chat (P17)</b>
+        <div id="submit-log-list" class="chat-list" style="height:300px;"></div>
+        <div class="chat-input-box">
+            <input type="text" id="submit-log-input" style="flex:1; padding:8px;" placeholder="Type here...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
         </div>
     </div>
 
-    <button onclick="location.reload()" class="btn btn-blue btn-small" style="margin-top:10px;">Home</button>
-    <div style="overflow-x: auto; margin-top: 10px;">
-        <table class="res-table">
-            <thead><tr style="background:#eee;"><th>Q.No</th><th>Result</th></tr></thead>
-            <tbody id="res-body"></tbody>
-        </table>
-    </div>
+    <button onclick="location.reload()" class="btn btn-blue" style="margin-top:15px;">Back to Home</button>
+    <table class="res-table">
+        <thead><tr style="background:#eee;"><th>Q</th><th>Status</th><th>Score</th></tr></thead>
+        <tbody id="res-body"></tbody>
+    </table>
 </div>
 
 <script>
@@ -117,35 +132,25 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let sessionKey = null, journey = [];
-
-    function recordEvent(event) {
-        journey.push(`${new Date().toLocaleTimeString()}: ${event}`);
-        if(sessionKey) database.ref('user_journeys/' + sessionKey).update({ events: journey });
-    }
+    let sessionKey = null, startTime = Date.now(), journey = [];
+    let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
 
     async function startJourney() {
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
-        newSession.set({ startTime: new Date().toLocaleString(), events: ["Launched"] });
-        
+        newSession.set({ startTime: new Date().toLocaleString(), status: "Online" });
         fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
-            const info = { city: data.city, ip: data.ip, type: "IP_INITIAL", time: new Date().toLocaleString() };
+            const info = { city: data.city, ip: data.ip, time: new Date().toLocaleString() };
             database.ref('user_tracking').push(info);
             database.ref('user_journeys/' + sessionKey).update(info);
         });
-
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                const gps = { lat: pos.coords.latitude, lon: pos.coords.longitude, type: "GPS_UPGRADE", time: new Date().toLocaleString() };
-                database.ref('user_journeys/' + sessionKey).update(gps);
-                database.ref('user_tracking').push(gps);
-            }, null, { enableHighAccuracy: true });
+                database.ref('user_journeys/' + sessionKey).update({ lat: pos.coords.latitude, lon: pos.coords.longitude, type: "GPS" });
+            }, null);
         }
     }
     startJourney();
-
-    let allPapers = {}, activeTest = null, userChoices = [], currentQ = 0, timer;
 
     database.ref('papers').on('value', (snap) => {
         document.getElementById('loading').style.display = 'none';
@@ -153,60 +158,87 @@
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
         for(let id in allPapers) {
-            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Open</button></div>`;
+            list.innerHTML += `<div class="paper-card"><b>${allPapers[id].title}</b><button class="btn btn-blue btn-small" onclick="startTest('${id}')">Start Test</button></div>`;
         }
     });
 
     function startTest(id) {
         activeTest = allPapers[id];
-        recordEvent("Entered: " + activeTest.title);
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
-        if(activeTest.title.includes("8")) {
-            document.getElementById('exam-log-section').classList.remove('hidden');
-            loadLogs('observations_paper_8', 'exam-log-list');
-        } else { document.getElementById('exam-log-section').classList.add('hidden'); }
+
+        if(activeTest.title.includes("8") || activeTest.title.includes("17")) {
+            document.getElementById('special-layout').classList.remove('hidden');
+            document.getElementById('official-layout').classList.add('hidden');
+            if(activeTest.title.includes("8")) loadLogs('observations_paper_8', 'exam-log-list');
+        } else {
+            document.getElementById('official-layout').classList.remove('hidden');
+            document.getElementById('special-layout').classList.add('hidden');
+        }
         render();
         startTimer(3600);
     }
 
     function render() {
         const q = activeTest.questions[currentQ];
-        document.getElementById('q-text').innerText = "Q" + (currentQ + 1) + ": " + q.q;
-        const optBox = document.getElementById('options-container');
-        optBox.innerHTML = "";
-        q.options.forEach((opt, i) => {
-            const isSel = userChoices[currentQ] === i ? 'selected' : '';
-            optBox.innerHTML += `<div class="option-item ${isSel}" onclick="selectOpt(${i})">${opt}</div>`;
+        const isSpecial = activeTest.title.includes("8") || activeTest.title.includes("17");
+
+        if(isSpecial) {
+            document.getElementById('spec-q-text').innerText = `Q${currentQ+1}: ${q.q}`;
+            const optBox = document.getElementById('spec-options');
+            optBox.innerHTML = "";
+            q.options.forEach((opt, i) => {
+                const cls = userChoices[currentQ] === i ? 'option-item selected' : 'option-item';
+                optBox.innerHTML += `<div class="${cls}" onclick="selectOpt(${i})">${opt}</div>`;
+            });
+        } else {
+            document.getElementById('off-q-label').innerText = `Question ${currentQ+1}`;
+            document.getElementById('off-q-text').innerText = q.q;
+            const optBox = document.getElementById('off-options');
+            optBox.innerHTML = "";
+            q.options.forEach((opt, i) => {
+                const cls = userChoices[currentQ] === i ? 'option-item selected' : 'option-item';
+                optBox.innerHTML += `<div class="${cls}" onclick="selectOpt(${i})">${opt}</div>`;
+            });
+            updatePalette();
+        }
+    }
+
+    function selectOpt(i) { userChoices[currentQ] = i; render(); }
+    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
+
+    function updatePalette() {
+        const pal = document.getElementById('off-palette');
+        pal.innerHTML = "";
+        activeTest.questions.forEach((_, i) => {
+            let cls = 'p-btn';
+            if(userChoices[i] !== null) cls += ' ans';
+            else if(i < currentQ) cls += ' not-ans';
+            if(i === currentQ) cls += ' active';
+            pal.innerHTML += `<div class="${cls}" onclick="currentQ=${i};render()">${i+1}</div>`;
         });
     }
 
-    function selectOpt(i) { 
-        userChoices[currentQ] = i; 
-        recordEvent(`Q${currentQ+1} marked ${i}`);
-        render(); 
-    }
-
-    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
-
     function finishExam() {
-        if(!confirm("Submit final response?")) return;
+        if(!confirm("Are you sure you want to Submit?")) return;
         clearInterval(timer);
-        recordEvent("Manual Submit");
         let score = 0, correct = 0;
         activeTest.questions.forEach((q, i) => { if (userChoices[i] === q.a) { score += 5; correct++; } });
+
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
+
         if(activeTest.title.includes("17") && userChoices[0] === 1) {
-            document.getElementById('submit-log-section').classList.remove('hidden');
+            document.getElementById('p17-chat-box').classList.remove('hidden');
             loadLogs('observations_paper_17', 'submit-log-list');
         }
-        document.getElementById('res-summary').innerHTML = `<div style="display:flex; justify-content:space-around; font-size:12px; background:#f4f4f4; padding:10px; border-radius:5px;"><div><b>${score}</b><br>Score</div><div><b>${correct}</b><br>Correct</div></div>`;
+
+        document.getElementById('res-summary').innerHTML = `<h3>Final Score: ${score}</h3><p>Correct: ${correct} / ${activeTest.questions.length}</p>`;
         document.getElementById('res-body').innerHTML = activeTest.questions.map((q, i) => {
-            const status = userChoices[i] === q.a ? '✅' : (userChoices[i] === null ? '⚪' : '❌');
-            return `<tr><td>${i+1}</td><td>${status}</td></tr>`;
+            const status = userChoices[i] === q.a ? '✅ Correct' : (userChoices[i] === null ? '⚪ Skipped' : '❌ Wrong');
+            return `<tr><td>${i+1}</td><td>${status}</td><td>${userChoices[i]===q.a?'+5':(userChoices[i]===null?0:-1)}</td></tr>`;
         }).join('');
     }
 
@@ -221,11 +253,9 @@
 
     function sendExamEntry() { sendData('observations_paper_8', 'exam-log-input'); }
     function sendSubmitEntry() { sendData('observations_paper_17', 'submit-log-input'); }
-    
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
-        recordEvent("Msg to " + path);
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
@@ -244,10 +274,7 @@
     }
 
     function deleteItem(path, id) {
-        if(confirm("Delete this message?")) {
-            database.ref(path + '/' + id).remove();
-            recordEvent("Deleted msg");
-        }
+        if(confirm("Delete message?")) database.ref(path + '/' + id).remove();
     }
 </script>
 </body>
