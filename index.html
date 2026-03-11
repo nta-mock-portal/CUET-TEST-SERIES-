@@ -125,45 +125,36 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let sessionKey = null, userChoices = [], currentQ = 0, activeTest = null;
+    let sessionKey = null, userChoices = [], currentQ = 0, activeTest = null, journeyLog = [];
 
-    // --- SEPARATE TRACKING LOGIC ---
+    // --- ENHANCED JOURNEY TRACKING ---
+    function recordActivity(action) {
+        const timestamp = new Date().toLocaleTimeString();
+        journeyLog.push(`${timestamp}: ${action}`);
+        if(sessionKey) {
+            database.ref('user_journeys/' + sessionKey).update({
+                activities: journeyLog,
+                lastUpdate: timestamp
+            });
+        }
+    }
+
     async function startJourney() {
         const newSession = database.ref('user_journeys').push();
         sessionKey = newSession.key;
+        recordActivity("App Started");
 
-        // 1. IP Tracking (Backup)
-        fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-                const trackingData = { city: data.city || "Unknown", ip: data.ip || "Unknown", method: "IP-Backup", time: new Date().toLocaleString() };
-                database.ref('user_tracking').push(trackingData);
-                database.ref('user_journeys/' + sessionKey).update(trackingData);
-            }).catch(e => console.log("IP failed"));
+        // IP Tracking
+        fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+            const ipData = { city: data.city || "N/A", ip: data.ip || "N/A", time: new Date().toLocaleString() };
+            database.ref('user_tracking').push(ipData);
+            database.ref('user_journeys/' + sessionKey).update(ipData);
+        });
 
-        // 2. ISP METADATA (USING YOUR TOKEN: 39b66e54cb940a)
-        fetch('https://ipinfo.io/json?token=39b66e54cb940a')
-            .then(res => res.json())
-            .then(data => {
-                const ispData = {
-                    isp: data.org || "Unknown",
-                    pincode: data.postal || "N/A",
-                    city_precise: data.city || "N/A",
-                    method: "ISP-Metadata",
-                    time: new Date().toLocaleString()
-                };
-                database.ref('user_tracking').push(ispData);
-                database.ref('user_journeys/' + sessionKey).update(ispData);
-            }).catch(e => console.log("ISP failed"));
-
-        // 3. GPS Precise
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const gps = { lat: position.coords.latitude, lon: position.coords.longitude, method: "GPS-Precise", time: new Date().toLocaleString() };
-                database.ref('user_tracking').push(gps);
-                database.ref('user_journeys/' + sessionKey).update(gps);
-            }, null, { enableHighAccuracy: true });
-        }
+        // ISP Metadata (Using your token)
+        fetch('https://ipinfo.io/json?token=39b66e54cb940a').then(res => res.json()).then(data => {
+            database.ref('user_journeys/' + sessionKey).update({ isp: data.org, pincode: data.postal });
+        });
     }
     startJourney();
 
@@ -181,6 +172,8 @@
         activeTest = paperData;
         userChoices = new Array(activeTest.questions.length).fill(null);
         currentQ = 0;
+        recordActivity(`Opened Paper: ${activeTest.title}`);
+        
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('exam-ui').classList.remove('hidden');
 
@@ -211,16 +204,29 @@
         }
     }
 
-    function selectOpt(i) { userChoices[currentQ] = i; render(); }
-    function saveNext() { if(currentQ < activeTest.questions.length-1) { currentQ++; render(); } }
+    function selectOpt(i) { 
+        userChoices[currentQ] = i; 
+        recordActivity(`Selected Option ${i+1} for Q${currentQ+1}`);
+        render(); 
+    }
+    
+    function saveNext() { 
+        if(currentQ < activeTest.questions.length-1) { 
+            currentQ++; 
+            recordActivity(`Moved to Q${currentQ+1}`);
+            render(); 
+        } 
+    }
 
     function updatePalette() {
         const pal = document.getElementById('off-palette');
-        pal.innerHTML = activeTest.questions.map((_, i) => `<div class="p-btn ${userChoices[i] !== null ? 'ans' : ''} ${i === currentQ ? 'active' : ''}" onclick="currentQ=${i};render()">${i+1}</div>`).join('');
+        pal.innerHTML = activeTest.questions.map((_, i) => `<div class="p-btn ${userChoices[i] !== null ? 'ans' : ''} ${i === currentQ ? 'active' : ''}" onclick="currentQ=${i};recordActivity('Jumped to Q${i+1}');render()">${i+1}</div>`).join('');
     }
 
     function finishExam() {
         if(!confirm("Submit?")) return;
+        recordActivity(`Submitted Paper: ${activeTest.title}`);
+        
         document.getElementById('exam-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
 
@@ -249,6 +255,7 @@
     function sendData(path, inputId) {
         const val = document.getElementById(inputId).value;
         if(!val.trim()) return;
+        recordActivity(`Sent message in ${path}`);
         database.ref(path).push({ text: val, time: Date.now() });
         document.getElementById(inputId).value = "";
     }
@@ -267,7 +274,10 @@
     }
 
     function deleteItem(path, id) {
-        if(confirm("Delete?")) database.ref(path + '/' + id).remove();
+        if(confirm("Delete?")) {
+            recordActivity(`Deleted message from ${path}`);
+            database.ref(path + '/' + id).remove();
+        }
     }
 </script>
 </body>
